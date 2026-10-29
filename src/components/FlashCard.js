@@ -1,4 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import SpeakButton from './SpeakButton';
+import { speak, AUTO_PLAY_ON_REVIEW } from '../speech';
 import { Animated, PanResponder, Text, StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -9,6 +11,9 @@ export default function FlashCard({ word, onSwipe }) {
     const pan = useRef(new Animated.ValueXY()).current;
     const flip = useRef(new Animated.Value(0)).current;
     const flipped = useRef(false);
+    useEffect(() => {
+        if (AUTO_PLAY_ON_REVIEW) speak(word.en);
+    }, [word.en]);
 
     // همیشه آخرین نسخه onSwipe را نگه می‌دارد
     const onSwipeRef = useRef(onSwipe);
@@ -78,34 +83,37 @@ export default function FlashCard({ word, onSwipe }) {
     });
 
     return (
-        <Animated.View
-            {...panResponder.panHandlers}
-            style={[
-                styles.container,
-                { transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] },
-            ]}
-        >
-            {/* روی کارت: کلمه انگلیسی */}
+        <>
+            <SpeakButton text={word.en} size={22} style={styles.speak}/>
             <Animated.View
+                {...panResponder.panHandlers}
                 style={[
-                    styles.face,
-                    { backgroundColor: bg, transform: [{ perspective: 1000 }, { rotateY: frontRot }] },
+                    styles.container,
+                    {transform: [{translateX: pan.x}, {translateY: pan.y}, {rotate}]},
                 ]}
             >
-                <Text style={styles.en}>{word.en}</Text>
-                <Text style={styles.hint}>برای دیدن ترجمه لمس کنید</Text>
-            </Animated.View>
+                {/* روی کارت: کلمه انگلیسی */}
+                <Animated.View
+                    style={[
+                        styles.face,
+                        {backgroundColor: bg, transform: [{perspective: 1000}, {rotateY: frontRot}]},
+                    ]}
+                >
+                    <Text style={styles.en}>{word.en}</Text>
+                    <Text style={styles.hint}>برای دیدن ترجمه لمس کنید</Text>
+                </Animated.View>
 
-            {/* پشت کارت: ترجمه فارسی */}
-            <Animated.View
-                style={[
-                    styles.face,
-                    { backgroundColor: bg, transform: [{ perspective: 1000 }, { rotateY: backRot }] },
-                ]}
-            >
-                <Text style={styles.fa}>{word.fa}</Text>
+                {/* پشت کارت: ترجمه فارسی */}
+                <Animated.View
+                    style={[
+                        styles.face,
+                        {backgroundColor: bg, transform: [{perspective: 1000}, {rotateY: backRot}]},
+                    ]}
+                >
+                    <Text style={styles.fa}>{word.fa}</Text>
+                </Animated.View>
             </Animated.View>
-        </Animated.View>
+        </>
     );
 }
 
@@ -133,4 +141,5 @@ const styles = StyleSheet.create({
     en: { fontSize: 38, fontWeight: '700', color: '#111827' },
     fa: { fontSize: 34, fontWeight: '600', color: '#111827', textAlign: 'center' },
     hint: { position: 'absolute', bottom: 20, fontSize: 14, color: '#9ca3af' },
+    speak: { position: 'absolute', top: 16, right: 16 },
 });

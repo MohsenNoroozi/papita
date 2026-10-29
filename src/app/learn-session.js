@@ -11,6 +11,8 @@ import { colors } from '../theme';
 import Button from '../components/Button';
 import ProgressBar from '../components/ProgressBar';
 import FadeIn from '../components/FadeIn';
+import SpeakButton from '../components/SpeakButton';
+import { speak, stopSpeaking, AUTO_PLAY_ON_INTRO, AUTO_PLAY_ON_QUIZ } from '../speech';
 
 // ساخت یک سؤال: type = 'en2fa' یا 'fa2en'
 function makeItem(word, type) {
@@ -43,7 +45,25 @@ export default function LearnSession() {
     const [selected, setSelected] = useState(null);
     const timer = useRef(null);
 
-    useEffect(() => () => clearTimeout(timer.current), []);
+    useEffect(
+        () => () => {
+            clearTimeout(timer.current);
+            stopSpeaking();
+        },
+        []
+    );
+
+    // پخش خودکار کلمه در مرحله معرفی
+    useEffect(() => {
+        if (phase === 'intro' && AUTO_PLAY_ON_INTRO && words[idx]) speak(words[idx].en);
+    }, [phase, idx, words]);
+
+    // پخش خودکار کلمه در سؤال‌های «انگلیسی به فارسی»
+    useEffect(() => {
+        if (phase !== 'quiz' || !AUTO_PLAY_ON_QUIZ) return;
+        const item = queue[0];
+        if (item && item.type === 'en2fa') speak(item.word.en);
+    }, [phase, queue]);
 
     const startBatch = () => {
         setWords(pickBatch());
@@ -98,6 +118,9 @@ export default function LearnSession() {
         const correct = opt.id === current.word.id;
         setSelected(opt.id);
 
+        // در سؤال «فارسی به انگلیسی»، بعد از جواب تلفظ کلمه درست را می‌شنوند
+        if (current.type === 'fa2en') speak(current.word.en);
+
         timer.current = setTimeout(() => {
             const rest = queue.slice(1);
             if (correct) setCorrectCount((c) => c + 1);
@@ -145,11 +168,15 @@ export default function LearnSession() {
                             <Text style={styles.chipText}>کلمه جدید</Text>
                         </View>
                         <Text style={styles.en}>{w.en}</Text>
+                        <SpeakButton text={w.en} style={styles.speak} />
                         <Text style={styles.fa}>{w.fa}</Text>
 
                         {w.example ? (
                             <View style={styles.exampleBox}>
-                                <Text style={styles.exampleEn}>{w.example}</Text>
+                                <View style={styles.exampleRow}>
+                                    <Text style={styles.exampleEn}>{w.example}</Text>
+                                    <SpeakButton text={w.example} size={18} rate={0.85} />
+                                </View>
                                 {w.exampleFa ? <Text style={styles.exampleFa}>{w.exampleFa}</Text> : null}
                             </View>
                         ) : null}
@@ -187,6 +214,7 @@ export default function LearnSession() {
                     <Text style={[styles.prompt, !isEn2Fa && styles.promptFa]}>
                         {isEn2Fa ? current.word.en : current.word.fa}
                     </Text>
+                    {isEn2Fa && <SpeakButton text={current.word.en} style={styles.speak} />}
 
                     <View style={styles.options}>
                         {current.options.map((opt) => {
@@ -230,7 +258,10 @@ export default function LearnSession() {
                 {words.map((w) => (
                     <View key={w.id} style={styles.sumRow}>
                         <Text style={styles.sumFa}>{w.fa}</Text>
-                        <Text style={styles.sumEn}>{w.en}</Text>
+                        <View style={styles.sumEnWrap}>
+                            <Text style={styles.sumEn}>{w.en}</Text>
+                            <SpeakButton text={w.en} size={18} />
+                        </View>
                     </View>
                 ))}
             </ScrollView>
@@ -279,14 +310,14 @@ const styles = StyleSheet.create({
         marginTop: 24,
         gap: 8,
     },
-    exampleEn: { fontSize: 17, color: colors.text, textAlign: 'left', lineHeight: 24 },
+    exampleEn: { flex: 1, fontSize: 17, color: colors.text, textAlign: 'left', lineHeight: 24 },
     exampleFa: { fontSize: 15, color: colors.sub, textAlign: 'right', writingDirection: 'rtl', lineHeight: 22 },
 
     footer: { padding: 20, gap: 4 },
 
     quizArea: { flex: 1, padding: 20 },
     question: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 24 },
-    prompt: { fontSize: 40, fontWeight: '800', color: colors.text, textAlign: 'center', marginTop: 12, marginBottom: 32 },
+    prompt: { fontSize: 40, fontWeight: '800', color: colors.text, textAlign: 'center', marginTop: 12, marginBottom: 16 },
     promptFa: { fontSize: 32 },
     options: { gap: 12 },
     option: {
@@ -311,10 +342,14 @@ const styles = StyleSheet.create({
     sumRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         backgroundColor: colors.card,
         borderRadius: 16,
         padding: 16,
     },
     sumEn: { fontSize: 18, fontWeight: '700', color: colors.text },
     sumFa: { fontSize: 16, color: colors.sub },
+    speak: { alignSelf: 'center', marginTop: 12 },
+    exampleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    sumEnWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });
