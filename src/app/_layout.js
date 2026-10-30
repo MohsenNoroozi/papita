@@ -6,7 +6,7 @@ export default function RootLayout() {
     return (
         <ProgressProvider>
             <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen
                     name="learn-session"
                     options={{ presentation: 'fullScreenModal', gestureEnabled: false }}

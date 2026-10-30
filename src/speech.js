@@ -7,6 +7,7 @@ const DEFAULT_RATE = 0.9;
 export const AUTO_PLAY_ON_INTRO = true;
 export const AUTO_PLAY_ON_QUIZ = true;
 export const AUTO_PLAY_ON_REVIEW = false;
+export const AUTO_PLAY_ON_LEARN = true;
 
 export function speak(text, { rate = DEFAULT_RATE } = {}) {
     if (!text) return;

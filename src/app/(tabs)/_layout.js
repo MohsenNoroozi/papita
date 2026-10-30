@@ -15,7 +15,7 @@ export default function TabsLayout() {
             }}
         >
             <Tabs.Screen name="index" options={{ title: 'امروز', tabBarIcon: icon('today-outline') }} />
-            <Tabs.Screen name="learn" options={{ title: 'یادگیری', tabBarIcon: icon('bulb-outline') }} />
+            <Tabs.Screen name="source" options={{ title: 'منابع', tabBarIcon: icon('library-outline') }} />
             <Tabs.Screen name="review" options={{ title: 'مرور', tabBarIcon: icon('repeat-outline') }} />
         </Tabs>
     );

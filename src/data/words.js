@@ -4,43 +4,50 @@ export const WORDS = [
         en: 'beautiful',
         fa: 'زیبا',
         example: 'beautiful animals',
-        exampleFa: 'حیوانات زیبا'
+        exampleFa: 'حیوانات زیبا',
+        sourceId: 15,
     },
     {
         id: 2,
         en: 'very',
         fa: 'بسیار',
         example: 'This is a very big cat.',
-        exampleFa: 'این یک گربه بسیار بزرگ است.'
+        exampleFa: 'این یک گربه بسیار بزرگ است.',
+        sourceId: 15,
     },
     {
         id: 3,
         en: 'stripe',
-        fa: 'راه راه'
+        fa: 'راه راه',
+        sourceId: 15,
     },
     {
         id: 4,
         en: 'likes',
         fa: 'دوست داشتن',
         example: 'This animal likes meat.',
-        exampleFa: 'این حیوان گوشت را دوست دارد.'
+        exampleFa: 'این حیوان گوشت را دوست دارد.',
+        sourceId: 15,
     },
     {
         id: 5,
         en: 'amazing',
         fa: 'شگفت‌انگیز',
+        sourceId: 15,
     },
     {
         id: 6,
         en: 'wonderful',
         fa: 'فوق العاده',
         example: "It's a wonderful day.",
-        exampleFa: 'روز فوق العاده‌ای است.'
+        exampleFa: 'روز فوق العاده‌ای است.',
+        sourceId: 15,
     },
     {
         id: 7,
         en: 'sand',
         fa: 'شنی',
+        sourceId: 15,
     },
     {
         id: 8,
@@ -48,6 +55,7 @@ export const WORDS = [
         fa: 'قلعه',
         example: 'sandcastle',
         exampleFa: 'قلعه شنی',
+        sourceId: 15,
     },
     {
         id: 9,
@@ -55,42 +63,49 @@ export const WORDS = [
         fa: 'قلعه شنی',
         example: "Let's make a sandcastle",
         exampleFa: 'بیا یک قلعه شنی بسازیم',
+        sourceId: 15,
     },
     {
         id: 10,
         en: 'beach',
         fa: 'ساحل',
         example: 'We are going to the beach today.',
-        exampleFa: 'ما امروز داریم به ساحل می‌رویم.'
+        exampleFa: 'ما امروز داریم به ساحل می‌رویم.',
+        sourceId: 15,
     },
     {
         id: 11,
         en: 'crab',
-        fa: 'خرچنگ'
+        fa: 'خرچنگ',
+        sourceId: 15,
     },
     {
         id: 12,
         en: 'ocean',
         fa: 'اقیانوس',
         example: "Let's swim in the ocean.",
-        exampleFa: 'بیا در اقیانوس شنا کنیم.'
+        exampleFa: 'بیا در اقیانوس شنا کنیم.',
+        sourceId: 15,
     },
     {
         id: 13,
         en: 'boat',
         fa: 'قایق',
+        sourceId: 15,
     },
     {
         id: 14,
         en: 'idea',
         fa: 'ایده',
         example: "That's a good idea.",
-        exampleFa: 'این یک ایده خوب است.'
+        exampleFa: 'این یک ایده خوب است.',
+        sourceId: 15,
     },
     {
         id: 15,
         en: 'shell',
         fa: 'صدف',
+        sourceId: 15,
     },
     {
         id: 16,
@@ -98,6 +113,7 @@ export const WORDS = [
         fa: 'پیدا کردن',
         example: "Let's find shells",
         exampleFa: 'بیا صدف‌ها را پیدا کنیم',
+        sourceId: 15,
     },
     {
         id: 17,
@@ -105,36 +121,43 @@ export const WORDS = [
         fa: 'ساختن',
         example: "Let's make a sandcastle",
         exampleFa: 'بیا یک قلعه شنی بسازیم',
+        sourceId: 15,
     },
     {
         id: 18,
         en: 'bat',
         fa: 'چماق',
+        sourceId: 15,
     },
     {
         id: 19,
         en: 'ice pop',
         fa: 'بستنی یخی',
+        sourceId: 15,
     },
     {
         id: 20,
         en: 'pail',
         fa: 'سطل',
+        sourceId: 15,
     },
     {
         id: 21,
         en: 'shovel',
         fa: 'بیل',
+        sourceId: 15,
     },
     {
         id: 22,
         en: 'bug',
         fa: 'حشره',
+        sourceId: 15,
     },
     {
         id: 23,
         en: 'sun',
         fa: 'خورشید',
+        sourceId: 15,
     },
     {
         id: 24,
@@ -142,6 +165,7 @@ export const WORDS = [
         fa: 'تعطیلات',
         example: "I'm on vacation",
         exampleFa: "من در تعطیلات هستم",
+        sourceId: 15,
     },
     {
         id: 25,
@@ -149,11 +173,13 @@ export const WORDS = [
         fa: 'با همدیگر',
         example: "We can play games together",
         exampleFa: "ما می‌توانیم با همدیگر بازی کنیم",
+        sourceId: 15,
     },
     {
         id: 26,
         en: 'about',
         fa: 'درباره',
+        sourceId: 15,
     },
     {
         id: 27,
@@ -161,20 +187,24 @@ export const WORDS = [
         fa: 'واقعاً',
         example: "Our hotel is really nice",
         exampleFa: "هتل ما واقعاً خوب است",
+        sourceId: 15,
     },
     {
         id: 28,
         en: 'nice',
         fa: 'خوب',
+        sourceId: 15,
     },
     {
         id: 29,
         en: 'pool',
         fa: 'استخر',
+        sourceId: 15,
     },
     {
         id: 30,
         en: 'swimming pool',
         fa: 'استخر شنا',
+        sourceId: 15,
     },
 ];

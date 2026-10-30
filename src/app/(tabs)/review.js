@@ -46,10 +46,10 @@ export default function ReviewScreen() {
             <SafeAreaView style={styles.center} edges={['top']}>
                 <Text style={styles.emoji}>✅</Text>
                 <Text style={styles.title}>امروز چیزی برای مرور نداری</Text>
-                <Text style={styles.sub}>کلمه جدید یاد بگیر تا فردا مرور شود</Text>
+                <Text style={styles.sub}>از بخش منابع کلمه‌ها را به جعبه ۱ اضافه کن</Text>
                 <Button
-                    title="یادگیری کلمات جدید"
-                    onPress={() => router.push('/learn-session')}
+                    title="رفتن به منابع"
+                    onPress={() => router.navigate('/source')}
                     style={styles.fullBtn}
                 />
             </SafeAreaView>

@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 
 import { WORDS } from '../../data/words';
 import { useProgress } from '../../context/ProgressContext';
-import { getDueWords, getNewWords, MASTERED, LEARN_BATCH_SIZE } from '../../leitner';
+import { getDueWords, getNewWords, MASTERED } from '../../leitner';
 import { colors } from '../../theme';
 import Button from '../../components/Button';
 
@@ -31,8 +31,6 @@ export default function Home() {
             </View>
         );
     }
-
-    const batch = Math.min(stats.fresh, LEARN_BATCH_SIZE);
 
     return (
         <SafeAreaView style={styles.screen} edges={['top']}>
@@ -62,9 +60,9 @@ export default function Home() {
                         {stats.fresh > 0 ? 'کلمه جدید در انتظار توست' : 'همه کلمات را یاد گرفتی 🎉'}
                     </Text>
                     <Button
-                        title={`یاد گرفتن ${batch} کلمه جدید`}
+                        title="انتخاب منبع برای یادگیری"
                         disabled={stats.fresh === 0}
-                        onPress={() => router.push('/learn-session')}
+                        onPress={() => router.navigate('/source')}
                         style={styles.cardBtn}
                     />
                 </View>
