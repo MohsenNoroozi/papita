@@ -10,4 +10,6 @@ export const colors = {
     successSoft: '#DCFCE7',
     danger: '#DC2626',
     dangerSoft: '#FEE2E2',
+    gold: '#F5B301',
+    starEmpty: '#CBD5E1',
 };

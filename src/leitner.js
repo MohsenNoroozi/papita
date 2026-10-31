@@ -19,6 +19,14 @@ export function startEntry(now = Date.now()) {
     return { box: 1, due: dueIn(INTERVALS_DAYS[0], now) };
 }
 
+// تعداد ستاره‌های پر (۰ تا stars با گام ۰٫۵) برای یک جعبه
+export function starsForBox(box, stars = 5) {
+    if (!box || box < 1) return 0;
+    if (box >= MASTERED) return stars;
+    const raw = (box / INTERVALS_DAYS.length) * stars;
+    return Math.max(0.5, Math.round(raw * 2) / 2); // کلمه‌ای که در جعبه است هیچ‌وقت ۰ ستاره نشان داده نمی‌شود
+}
+
 // اعمال پاسخ مرور: راست (known=true) یک جعبه جلو، چپ برگشت به جعبه ۱
 export function applyAnswer(entry, known, now = Date.now()) {
     const box = entry?.box ?? 1;

@@ -60,7 +60,7 @@ export default function Home() {
                         {stats.fresh > 0 ? 'کلمه جدید در انتظار توست' : 'همه کلمات را یاد گرفتی 🎉'}
                     </Text>
                     <Button
-                        title="انتخاب منبع برای یادگیری"
+                        title="یادگیری کلمات جدید"
                         disabled={stats.fresh === 0}
                         onPress={() => router.navigate('/source')}
                         style={styles.cardBtn}

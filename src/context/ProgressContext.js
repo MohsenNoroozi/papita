@@ -45,6 +45,22 @@ export function ProgressProvider({ children }) {
         [commit]
     );
 
+    // حذف کلمه‌ها از همه جعبه‌ها
+    const removeFromBoxes = useCallback(
+        (ids) => {
+            const next = { ...ref.current };
+            let changed = false;
+            for (const id of ids) {
+                if (next[id]) {
+                    delete next[id];
+                    changed = true;
+                }
+            }
+            if (changed) commit(next);
+        },
+        [commit]
+    );
+
     // فقط برای تست: همه سررسیدها را n روز جلو می‌آورد
     const shiftDays = useCallback(
         (days) => {
@@ -65,7 +81,7 @@ export function ProgressProvider({ children }) {
     }, []);
 
     return (
-        <Ctx.Provider value={{ progress, ready, getProgress, setEntry, addToBox1, shiftDays, reset }}>
+        <Ctx.Provider value={{ progress, ready, getProgress, setEntry, addToBox1, removeFromBoxes, shiftDays, reset }}>
             {children}
         </Ctx.Provider>
     );
