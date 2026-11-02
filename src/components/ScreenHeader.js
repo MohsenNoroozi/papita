@@ -4,13 +4,17 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 
-export default function ScreenHeader({ title, right }) {
+export default function ScreenHeader({ title, right, showBack = true }) {
     const router = useRouter();
     return (
         <View style={styles.row}>
-            <Pressable onPress={() => router.back()} hitSlop={12} style={styles.side}>
-                <Ionicons name="chevron-back" size={28} color={colors.text} />
-            </Pressable>
+            {showBack ? (
+                <Pressable onPress={() => router.back()} hitSlop={12} style={styles.side}>
+                    <Ionicons name="chevron-back" size={28} color={colors.text} />
+                </Pressable>
+            ) : (
+                <View style={styles.side} />
+            )}
             <Text style={styles.title} numberOfLines={1}>
                 {title}
             </Text>

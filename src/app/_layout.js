@@ -9,11 +9,6 @@ export default function RootLayout() {
             <ProgressProvider>
                 <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    {/* اگر learn-session.js را حذف کرده‌اید، این بخش را هم پاک کنید */}
-                    <Stack.Screen
-                        name="learn-session"
-                        options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
-                    />
                 </Stack>
             </ProgressProvider>
         </SettingsProvider>

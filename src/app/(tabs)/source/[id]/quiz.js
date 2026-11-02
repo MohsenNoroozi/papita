@@ -41,12 +41,19 @@ function buildQueue(words, pool) {
 
 export default function SourceQuiz() {
     const router = useRouter();
-    const { id } = useLocalSearchParams();
+    const { id, ids } = useLocalSearchParams();
     const sourceId = Number(id);
     const source = getSource(sourceId);
-    const words = useMemo(() => getWordsOfSource(sourceId), [sourceId]);
-    // گزینه‌های غلط ترجیحاً از همین منبع انتخاب می‌شوند
-    const pool = words.length >= 4 ? words : WORDS;
+    const sourceWords = useMemo(() => getWordsOfSource(sourceId), [sourceId]);
+    const isDeckQuiz = !!ids;
+    const words = useMemo(() => {
+        if (!ids) return sourceWords; // آزمون کل منبع
+        const wanted = new Set(String(ids).split(',').map(Number));
+        // اگر منبع مشخص نباشد (مثلاً از صفحه مرور)، از بین همه کلمات انتخاب می‌شود
+        return (id ? sourceWords : WORDS).filter((w) => wanted.has(w.id));
+    }, [id, ids, sourceWords]);
+    // گزینه‌های غلط ترجیحاً از کل کلمات همین منبع انتخاب می‌شوند
+    const pool = sourceWords.length >= 4 ? sourceWords : WORDS;
 
     const { progress, addToBox1 } = useProgress();
     const { autoSpeak } = useSettings();
@@ -80,7 +87,7 @@ export default function SourceQuiz() {
         if (item && item.type === 'en2fa') speak(item.word.en);
     }, [queue]);
 
-    if (!source || words.length === 0) {
+    if ((!source && !isDeckQuiz) || words.length === 0) {
         return (
             <SafeAreaView style={styles.screen} edges={['top']}>
                 <ScreenHeader title="آزمون" />
@@ -132,7 +139,7 @@ export default function SourceQuiz() {
     const header = (
         <>
             <ScreenHeader
-                title={`آزمون ${source.title}`}
+                title={isDeckQuiz ? 'آزمون دسته' : `آزمون ${source.title}`}
                 right={
                     <RoundIconButton
                         icon="rocket-outline"

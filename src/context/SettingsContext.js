@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DECK_SIZE } from '../leitner';
 
 const KEY = 'settings_v1';
-const DEFAULTS = { autoSpeak: true };
+const DEFAULTS = { autoSpeak: true, deckSize: DECK_SIZE };
 
 const Ctx = createContext(null);
 
@@ -31,9 +32,10 @@ export function SettingsProvider({ children }) {
     }, []);
 
     const setAutoSpeak = useCallback((value) => update({ autoSpeak: value }), [update]);
+    const setDeckSize = useCallback((value) => update({ deckSize: value }), [update]);
 
     return (
-        <Ctx.Provider value={{ ...settings, ready, setAutoSpeak }}>
+        <Ctx.Provider value={{ ...settings, ready, setAutoSpeak, setDeckSize }}>
             {children}
         </Ctx.Provider>
     );

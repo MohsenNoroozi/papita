@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { loadProgress, saveProgress, clearProgress } from '../storage';
+import {
+    loadProgress,
+    saveProgress,
+    clearProgress,
+    loadSeen,
+    saveSeen,
+    clearSeen,
+} from '../storage';
 import { startEntry } from '../leitner';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -7,19 +14,24 @@ const Ctx = createContext(null);
 
 export function ProgressProvider({ children }) {
     const [progress, setProgress] = useState({});
+    const [seen, setSeen] = useState({});
     const [ready, setReady] = useState(false);
     const ref = useRef({});
+    const seenRef = useRef({});
 
     useEffect(() => {
         (async () => {
-            const p = await loadProgress();
+            const [p, s] = await Promise.all([loadProgress(), loadSeen()]);
             ref.current = p;
+            seenRef.current = s;
             setProgress(p);
+            setSeen(s);
             setReady(true);
         })();
     }, []);
 
     const getProgress = useCallback(() => ref.current, []);
+    const getSeen = useCallback(() => seenRef.current, []);
 
     const commit = useCallback((next) => {
         ref.current = next;
@@ -61,6 +73,19 @@ export function ProgressProvider({ children }) {
         [commit]
     );
 
+    // ثبت اینکه این کلمه‌ها در یک دسته یادگیری به کاربر نشان داده شدند (یک بار برای هر دسته)
+    const markSeen = useCallback((ids) => {
+        if (!ids || ids.length === 0) return;
+        const now = Date.now();
+        const next = { ...seenRef.current };
+        for (const id of ids) {
+            next[id] = { n: (next[id]?.n ?? 0) + 1, at: now };
+        }
+        seenRef.current = next;
+        setSeen(next);
+        saveSeen(next);
+    }, []);
+
     // فقط برای تست: همه سررسیدها را n روز جلو می‌آورد
     const shiftDays = useCallback(
         (days) => {
@@ -76,12 +101,29 @@ export function ProgressProvider({ children }) {
     // فقط برای تست: پاک کردن همه پیشرفت‌ها
     const reset = useCallback(() => {
         ref.current = {};
+        seenRef.current = {};
         setProgress({});
+        setSeen({});
         clearProgress();
+        clearSeen();
     }, []);
 
     return (
-        <Ctx.Provider value={{ progress, ready, getProgress, setEntry, addToBox1, removeFromBoxes, shiftDays, reset }}>
+        <Ctx.Provider
+            value={{
+                progress,
+                seen,
+                ready,
+                getProgress,
+                getSeen,
+                setEntry,
+                addToBox1,
+                removeFromBoxes,
+                markSeen,
+                shiftDays,
+                reset,
+            }}
+        >
             {children}
         </Ctx.Provider>
     );

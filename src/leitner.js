@@ -1,3 +1,7 @@
+// تعداد پیش‌فرض کلمات هر دسته و گزینه‌های قابل انتخاب
+export const DECK_SIZE = 10;
+export const DECK_SIZE_OPTIONS = [5, 10, 15, 20, 30];
+
 // فاصله مرور هر جعبه (به روز). طول این آرایه = تعداد جعبه‌ها
 export const INTERVALS_DAYS = [1, 2, 4, 8, 16];
 
@@ -44,6 +48,24 @@ export function shuffle(arr) {
         [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+}
+
+// انتخاب دسته (غیرتصادفی): فقط کلمات بیرون از جعبه، به ترتیب «کمتر دیده‌شده‌ها»، بعد id
+// seen: { [wordId]: { n: تعداد دفعات دیده‌شدن، at: آخرین زمان } }
+export function pickDeck(words, progress, seen, size = DECK_SIZE) {
+    return words
+        .filter((w) => !progress[w.id])
+        .sort((a, b) => (seen[a.id]?.n ?? 0) - (seen[b.id]?.n ?? 0) || a.id - b.id)
+        .slice(0, size);
+}
+
+// انتخاب دسته مرور: کلمات سررسیدشده؛ اول عقب‌افتاده‌ترین‌ها، بعد id.
+// exclude: مجموعه id کلماتی که در این نشست قبلاً آمده‌اند
+export function pickDueDeck(words, progress, size = DECK_SIZE, exclude, now = Date.now()) {
+    return getDueWords(words, progress, now)
+        .filter((w) => !exclude || !exclude.has(w.id))
+        .sort((a, b) => progress[a.id].due - progress[b.id].due || a.id - b.id)
+        .slice(0, size);
 }
 
 // کلماتی که هنوز وارد سیستم نشده‌اند
