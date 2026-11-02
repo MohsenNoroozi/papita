@@ -8,10 +8,12 @@ import { useProgress } from '../../context/ProgressContext';
 import { getDueWords, getNewWords, MASTERED } from '../../leitner';
 import { colors } from '../../theme';
 import Button from '../../components/Button';
+import {inspectStorage} from "../../storage";
 
 export default function Home() {
     const router = useRouter();
     const { ready, progress, reset, shiftDays } = useProgress();
+    const printStorage = () => inspectStorage();
 
     const stats = useMemo(() => {
         const entries = Object.values(progress);
@@ -87,6 +89,9 @@ export default function Home() {
                         </Pressable>
                         <Pressable onPress={reset}>
                             <Text style={styles.devLink}>🗑 پاک کردن همه پیشرفت</Text>
+                        </Pressable>
+                        <Pressable onPress={printStorage}>
+                            <Text style={styles.devLink}>مشاهده داده‌ها</Text>
                         </Pressable>
                     </View>
                 )}

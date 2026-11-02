@@ -48,3 +48,28 @@ export async function clearSeen() {
         await AsyncStorage.removeItem(SEEN_KEY);
     } catch {}
 }
+
+export async function inspectStorage() {
+    try {
+        const keys = await AsyncStorage.getAllKeys();
+
+        const stores = await AsyncStorage.multiGet(keys);
+
+        const result = Object.fromEntries(
+            stores.map(([key, value]) => {
+                try {
+                    return [key, JSON.parse(value)];
+                } catch {
+                    return [key, value];
+                }
+            })
+        );
+
+        console.log(
+            'AsyncStorage:\n',
+            JSON.stringify(result, null, 4)
+        );
+    } catch (error) {
+        console.error(error);
+    }
+}
