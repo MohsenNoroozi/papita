@@ -21,10 +21,6 @@ export default function SwipeAway({
     onDismissRef.current = onDismiss;
 
     useEffect(() => {
-        if (__DEV__) console.log('[SwipeAway] mounted, direction =', direction);
-    }, [direction]);
-
-    useEffect(() => {
         if (!enterFrom) return;
         Animated.timing(x, {
             toValue: 0,

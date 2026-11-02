@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { WORDS } from '../../../../data/words';
 import { getSource, getWordsOfSource } from '../../../../data/lookup';
@@ -87,6 +87,19 @@ export default function SourceQuiz() {
         if (item && item.type === 'en2fa') speak(item.word.en);
     }, [queue]);
 
+    // برگشت به این صفحه بعد از رفتن به تب دیگر: آزمون از اول شروع شود
+    const restartRef = useRef(null);
+    const firstFocus = useRef(true);
+    useFocusEffect(
+        useCallback(() => {
+            if (firstFocus.current) {
+                firstFocus.current = false;
+                return;
+            }
+            restartRef.current?.();
+        }, [])
+    );
+
     if ((!source && !isDeckQuiz) || words.length === 0) {
         return (
             <SafeAreaView style={styles.screen} edges={['top']}>
@@ -108,6 +121,7 @@ export default function SourceQuiz() {
         setSelected(null);
         setMissed([]);
     };
+    restartRef.current = restart;
 
     const choose = (opt) => {
         if (selected !== null) return;

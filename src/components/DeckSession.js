@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useProgress } from '../context/ProgressContext';
 import { useSettings } from '../context/SettingsContext';
-import { applyAnswer, shuffle } from '../leitner';
+import { applyAnswer, shuffle, REVIEW_DECK_SIZE } from '../leitner';
 import { stopSpeaking } from '../speech';
 import { colors } from '../theme';
 import FlashCard from './FlashCard';
@@ -32,7 +32,6 @@ function formatDuration(ms) {
  * quizHref(ids): آدرس آزمون همان دسته
  * onExit: دکمه «بازگشت» در آمار
  * renderEmpty(): صفحه‌ای که وقتی کلمه‌ای برای دسته نیست نمایش داده می‌شود
- * refreshOnFocus: اگر صفحه خالی بود، هنگام برگشتن به آن دوباره دسته می‌گیرد (برای تب مرور)
  */
 export default function DeckSession({
                                         mode = 'learn',
@@ -42,7 +41,6 @@ export default function DeckSession({
                                         onExit,
                                         renderEmpty,
                                         showBack = true,
-                                        refreshOnFocus = false,
                                     }) {
     const router = useRouter();
     const isReview = mode === 'review';
@@ -53,8 +51,10 @@ export default function DeckSession({
     const used = useRef(new Set()); // مرور: کلماتی که در دسته‌های این نشست آمده‌اند
 
     const makeDeck = () => {
-        // انتخاب دسته غیرتصادفی است؛ فقط ترتیب نمایش کارت‌ها تصادفی است
-        const d = shuffle(pick(deckSize, isReview ? used.current : undefined));
+        // انتخاب دسته غیرتصادفی است؛ فقط ترتیب نمایش کارت‌ها تصادفی است.
+        // مرور: اگر کلمات سررسیدشده بیش از ۱۰۰ تا باشند، در دسته‌های ۱۰۰تایی می‌آیند؛ وگرنه همه با هم.
+        const size = isReview ? REVIEW_DECK_SIZE : deckSize;
+        const d = shuffle(pick(size, isReview ? used.current : undefined));
         if (isReview) d.forEach((w) => used.current.add(w.id));
         return d;
     };
@@ -89,6 +89,17 @@ export default function DeckSession({
         [flushSeen]
     );
 
+    // مرور: کلمه‌ای که در این فاصله از جعبه‌ها حذف شده (مثلاً در صفحه یادگیری یا با پاک‌کردن پیشرفت)
+    // نباید در دسته بماند
+    useEffect(() => {
+        if (!isReview) return;
+        const alive = deck.filter((w) => progress[w.id]);
+        if (alive.length === deck.length) return;
+        setDeck(alive);
+        setIdx((i) => Math.min(i, Math.max(alive.length - 1, 0)));
+        setDeckKey((k) => k + 1); // کارت فعلی دوباره ساخته شود
+    }, [isReview, deck, progress]);
+
     const applyNewDeck = (d) => {
         setDeck(d);
         visited.current = new Set([d[0].id]);
@@ -101,19 +112,49 @@ export default function DeckSession({
         setPhase('cards');
     };
 
-    // برای افکت فوکوس (که فقط یک‌بار ساخته می‌شود) آخرین مقدارها را نگه می‌داریم
+    // با هر بار برگشتن به این صفحه (مثلاً بعد از رفتن به تب دیگر) نشست از نو ساخته می‌شود
+    const refresh = () => {
+        flushSeen(); // یادگیری: کلمات دیده‌شده دسته قبلی ثبت شود
+        if (isReview) {
+            used.current = new Set(); // مرور: نشست تازه
+            reviewLog.current = {};
+        }
+        const d = makeDeck();
+        if (d.length > 0) {
+            applyNewDeck(d);
+            setEnter(null);
+            setHasMoved(false); // مثل باز شدن تازه صفحه: کلمه اول خوانده نمی‌شود
+        } else {
+            setDeck([]); // کلمه‌ای نمانده
+        }
+    };
+
+    // برای افکت فوکوس (که فقط یک‌بار ساخته می‌شود) آخرین نسخه refresh را نگه می‌داریم
     const latest = useRef({});
-    latest.current = { deck, makeDeck, applyNewDeck };
+    latest.current = { refresh };
+
+    const firstFocus = useRef(true); // اولین فوکوس = ساخته‌شدن صفحه، refresh نمی‌خواهد
+    const skipRefresh = useRef(false); // برگشت از آزمونی که خودمان باز کرده‌ایم، refresh نمی‌خواهد
 
     useFocusEffect(
         useCallback(() => {
-            if (!refreshOnFocus) return;
-            const l = latest.current;
-            if (l.deck.length > 0) return;
-            const d = l.makeDeck();
-            if (d.length > 0) l.applyNewDeck(d);
-        }, [refreshOnFocus])
+            if (firstFocus.current) {
+                firstFocus.current = false;
+                return;
+            }
+            if (skipRefresh.current) {
+                skipRefresh.current = false;
+                return;
+            }
+            latest.current.refresh();
+        }, [])
     );
+
+    // رفتن به آزمون؛ برگشت از آن دسته را refresh نمی‌کند
+    const openQuiz = (href) => {
+        skipRefresh.current = true;
+        router.push(href);
+    };
 
     // ---------- کارها ----------
     // رفتن به یک کارت دیگر؛ from = سمتی که کارت جدید از آن وارد می‌شود
@@ -140,6 +181,7 @@ export default function DeckSession({
 
     // مرور: ثبت پاسخ (همیشه از وضعیت اولیه حساب می‌شود، پس تغییر پاسخ مشکلی ندارد)
     const applyReview = (w, known) => {
+        if (!getProgress()[w.id]) return; // کلمه‌ای که دیگر در جعبه نیست دوباره به جعبه اضافه نشود
         const log = reviewLog.current;
         if (!log[w.id]) log[w.id] = { original: getProgress()[w.id] };
         log[w.id].known = known;
@@ -297,7 +339,7 @@ export default function DeckSession({
                         <IconTextButton
                             icon="extension-puzzle-outline"
                             label="آزمون"
-                            onPress={() => router.push(quizDeckHref)}
+                            onPress={() => openQuiz(quizDeckHref)}
                         />
                         <IconTextButton icon="arrow-back-outline" label="بازگشت" onPress={onExit} />
                     </View>
@@ -355,7 +397,7 @@ export default function DeckSession({
                 <IconTextButton
                     icon="extension-puzzle-outline"
                     label="آزمون"
-                    onPress={() => router.push(quizDeckHref)}
+                    onPress={() => openQuiz(quizDeckHref)}
                 />
 
                 <IconTextButton
