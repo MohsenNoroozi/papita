@@ -1,11 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, PanResponder, Text, View, StyleSheet, Dimensions } from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Animated, Easing, PanResponder, Text, View, Pressable, Modal, StyleSheet, Dimensions} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
 import SpeakButton from './SpeakButton';
 import BoxStars from './BoxStars';
-import { speak, AUTO_PLAY_ON_REVIEW } from '../speech';
-import { colors } from '../theme';
+import {speak, AUTO_PLAY_ON_REVIEW} from '../speech';
+import {getSource} from '../data/lookup';
+import {INTERVALS_DAYS, MASTERED} from '../leitner';
+import {colors} from '../theme';
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
 const CARD_HEIGHT = Math.min(380, height * 0.45);
 
@@ -17,10 +20,10 @@ const SWIPE_THRESHOLD_Y = height * 0.12; // کشیدن عمودی
 
 // جای شروع کارت جدید قبل از انیمیشن ورود
 const ENTER_OFFSETS = {
-    left: { x: -width, y: 0 },
-    right: { x: width, y: 0 },
-    top: { x: 0, y: -height * 0.5 },
-    bottom: { x: 0, y: height * 0.5 },
+    left: {x: -width, y: 0},
+    right: {x: width, y: 0},
+    top: {x: 0, y: -height * 0.5},
+    bottom: {x: 0, y: height * 0.5},
 };
 
 export default function FlashCard({
@@ -39,12 +42,26 @@ export default function FlashCard({
                                       box, // شماره جعبه کلمه (undefined = در هیچ جعبه‌ای نیست)
                                       autoPlay = AUTO_PLAY_ON_REVIEW,
                                   }) {
-    const start = ENTER_OFFSETS[enterFrom] ?? { x: 0, y: 0 };
+    const start = ENTER_OFFSETS[enterFrom] ?? {x: 0, y: 0};
     const pan = useRef(new Animated.ValueXY(start)).current;
     const tintY = useRef(new Animated.Value(0)).current; // فقط برای رنگ هنگام کشیدن عمودی
     const flip = useRef(new Animated.Value(0)).current;
     const flipped = useRef(false);
     const busy = useRef(!!enterFrom); // در حین ورود/خروج کارت لمس نادیده گرفته می‌شود
+    const [infoOpen, setInfoOpen] = useState(false);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    const source = word.sourceId != null ? getSource(word.sourceId) : null;
+    const boxLabel =
+        box === undefined || box === null
+            ? 'هنوز در جعبه‌ای نیست'
+            : box === MASTERED
+                ? 'کاملاً یادگرفته'
+                : `جعبه ${box} از ${INTERVALS_DAYS.length}`;
+    const interval =
+        box && box !== MASTERED && INTERVALS_DAYS[box - 1] != null
+            ? `هر ${INTERVALS_DAYS[box - 1]} روز`
+            : null;
 
     // آخرین مقدار propها برای PanResponder (که فقط یک‌بار ساخته می‌شود)
     const handlers = useRef({});
@@ -69,7 +86,7 @@ export default function FlashCard({
     useEffect(() => {
         if (!enterFrom) return;
         Animated.timing(pan, {
-            toValue: { x: 0, y: 0 },
+            toValue: {x: 0, y: 0},
             duration: 280,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: false,
@@ -81,6 +98,7 @@ export default function FlashCard({
 
     const toggleFlip = () => {
         flipped.current = !flipped.current;
+        setIsFlipped(flipped.current);
         Animated.spring(flip, {
             toValue: flipped.current ? 1 : 0,
             friction: 8,
@@ -91,15 +109,15 @@ export default function FlashCard({
 
     const springBack = () => {
         Animated.parallel([
-            Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }),
-            Animated.timing(tintY, { toValue: 0, duration: 180, useNativeDriver: false }),
+            Animated.spring(pan, {toValue: {x: 0, y: 0}, useNativeDriver: false}),
+            Animated.timing(tintY, {toValue: 0, duration: 180, useNativeDriver: false}),
         ]).start();
     };
 
     const flingX = (dir) => {
         busy.current = true;
         Animated.timing(pan, {
-            toValue: { x: dir * width * 1.2, y: 0 },
+            toValue: {x: dir * width * 1.2, y: 0},
             duration: 200,
             useNativeDriver: false,
         }).start(() => handlers.current.onSwipe?.(dir > 0));
@@ -109,7 +127,7 @@ export default function FlashCard({
     const flingY = (dir, done) => {
         busy.current = true;
         Animated.timing(pan, {
-            toValue: { x: 0, y: dir * height },
+            toValue: {x: 0, y: dir * height},
             duration: 220,
             useNativeDriver: false,
         }).start(done);
@@ -133,7 +151,7 @@ export default function FlashCard({
                     x = blocked ? g.dx * 0.2 : g.dx;
                     y = g.dy * 0.2;
                 }
-                pan.setValue({ x, y });
+                pan.setValue({x, y});
                 tintY.setValue(y);
             },
             onPanResponderRelease: (_, g) => {
@@ -141,7 +159,7 @@ export default function FlashCard({
                 const isTap = Math.abs(g.dx) < 6 && Math.abs(g.dy) < 6;
 
                 if (isTap) {
-                    pan.setValue({ x: 0, y: 0 });
+                    pan.setValue({x: 0, y: 0});
                     tintY.setValue(0);
                     toggleFlip();
                     return;
@@ -183,6 +201,7 @@ export default function FlashCard({
                 else springBack();
             },
             onPanResponderTerminate: springBack,
+            onPanResponderTerminationRequest: () => false,
         })
     ).current;
 
@@ -206,57 +225,101 @@ export default function FlashCard({
             })
             : colors.card;
 
-    const frontRot = flip.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
-    const backRot = flip.interpolate({ inputRange: [0, 1], outputRange: ['180deg', '360deg'] });
+    const frontRot = flip.interpolate({inputRange: [0, 1], outputRange: ['0deg', '180deg']});
+    const backRot = flip.interpolate({inputRange: [0, 1], outputRange: ['180deg', '360deg']});
 
     return (
-        <Animated.View
-            {...panResponder.panHandlers}
-            style={[
-                styles.container,
-                { transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] },
-            ]}
-        >
-            {/* روی کارت: کلمه انگلیسی */}
+        <>
             <Animated.View
+                {...panResponder.panHandlers}
                 style={[
-                    styles.face,
-                    showBox && styles.faceWithStars,
-                    { backgroundColor: bg, transform: [{ perspective: 1000 }, { rotateY: frontRot }] },
+                    styles.container,
+                    {transform: [{translateX: pan.x}, {translateY: pan.y}, {rotate}]},
                 ]}
             >
-                <Text style={styles.en}>{word.en}</Text>
-                {showBox ? <BoxStars box={box} style={styles.stars} /> : null}
-            </Animated.View>
+                {/* روی کارت: کلمه انگلیسی */}
+                <Animated.View
+                    style={[
+                        styles.face,
+                        showBox && styles.faceWithStars,
+                        {backgroundColor: bg, transform: [{perspective: 1000}, {rotateY: frontRot}]},
+                    ]}
+                >
+                    <Text style={styles.en}>{word.en}</Text>
+                    {showBox ? <BoxStars box={box} style={styles.stars}/> : null}
+                </Animated.View>
 
-            {/* پشت کارت: ترجمه فارسی (+ جمله مثال اختیاری) */}
-            <Animated.View
-                style={[
-                    styles.face,
-                    showBox && styles.faceWithStars,
-                    { backgroundColor: bg, transform: [{ perspective: 1000 }, { rotateY: backRot }] },
-                ]}
-            >
-                <Text style={styles.fa}>{word.fa}</Text>
-                {showExample && word.example ? (
-                    <View style={styles.exampleBox}>
-                        <Text style={styles.exampleEn}>{word.example}</Text>
-                        {word.exampleFa ? <Text style={styles.exampleFa}>{word.exampleFa}</Text> : null}
-                    </View>
-                ) : null}
-                {showBox ? <BoxStars box={box} style={styles.stars} /> : null}
-            </Animated.View>
+                {/* پشت کارت: ترجمه فارسی (+ جمله مثال اختیاری) */}
+                <Animated.View
+                    style={[
+                        styles.face,
+                        showBox && styles.faceWithStars,
+                        {backgroundColor: bg, transform: [{perspective: 1000}, {rotateY: backRot}]},
+                    ]}
+                >
+                    <Text style={styles.fa}>{word.fa}</Text>
+                    {showExample && word.example ? (
+                        <View style={styles.exampleBox}>
+                            <Text style={styles.exampleEn}>{word.example}</Text>
+                            {word.exampleFa ? <Text style={styles.exampleFa}>{word.exampleFa}</Text> : null}
+                        </View>
+                    ) : null}
+                    {showBox ? <BoxStars box={box} style={styles.stars}/> : null}
+                </Animated.View>
 
-            {/* دکمه صدا: بیرون از وجه‌های چرخان تا روی هر دو طرف کارت دیده شود */}
-            <View style={styles.overlay} pointerEvents="box-none">
-                <SpeakButton text={word.en} size={22} style={styles.speak} />
-            </View>
-        </Animated.View>
+                {/* دکمه صدا: بیرون از وجه‌های چرخان تا روی هر دو طرف کارت دیده شود */}
+                <View style={styles.overlay} pointerEvents="box-none">
+                    <SpeakButton text={(isFlipped && word.example) ? word.example : word.en} size={22} style={styles.speak}/>
+                    <Pressable
+                        onPress={() => setInfoOpen(true)}
+                        hitSlop={10}
+                        accessibilityLabel="اطلاعات کلمه"
+                        style={styles.infoBtn}
+                    >
+                        <Ionicons name="information-circle-outline" size={26} color={colors.primary}/>
+                    </Pressable>
+                </View>
+            </Animated.View>
+            <Modal visible={infoOpen} transparent animationType="fade" onRequestClose={() => setInfoOpen(false)}>
+                <Pressable style={styles.backdrop} onPress={() => setInfoOpen(false)}>
+                    <Pressable style={styles.popup} onPress={() => {
+                    }}>
+                        <Text style={styles.popupWord}>{word.en}</Text>
+                        <Text style={styles.popupFa}>{word.fa}</Text>
+
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoValue}>{source?.title ?? '—'}</Text>
+                            <Text style={styles.infoLabel}>منبع</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoValue}>{boxLabel}</Text>
+                            <Text style={styles.infoLabel}>جعبه</Text>
+                        </View>
+                        {interval && (
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoValue}>{interval}</Text>
+                                <Text style={styles.infoLabel}>مرور</Text>
+                            </View>
+                        )}
+                        {word.example ? (
+                            <View style={styles.exampleBox}>
+                                <Text style={styles.exampleEn}>{word.example}</Text>
+                                {word.exampleFa ? <Text style={styles.exampleFa}>{word.exampleFa}</Text> : null}
+                            </View>
+                        ) : null}
+
+                        <Pressable style={styles.closeBtn} onPress={() => setInfoOpen(false)}>
+                            <Text style={styles.closeText}>بستن</Text>
+                        </Pressable>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { width: CARD_WIDTH, height: CARD_HEIGHT, alignSelf: 'center' },
+    container: {width: CARD_WIDTH, height: CARD_HEIGHT, alignSelf: 'center'},
     face: {
         position: 'absolute',
         width: '100%',
@@ -270,11 +333,11 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.15,
         shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
     },
-    faceWithStars: { paddingBottom: 56 },
-    en: { fontSize: 38, fontWeight: '700', color: colors.text },
-    fa: { fontSize: 34, fontWeight: '600', color: colors.text, textAlign: 'center' },
+    faceWithStars: {paddingBottom: 56},
+    en: {fontSize: 38, fontWeight: '700', color: colors.text},
+    fa: {fontSize: 34, fontWeight: '600', color: colors.text, textAlign: 'center'},
     exampleBox: {
         alignSelf: 'stretch',
         backgroundColor: colors.bg,
@@ -283,9 +346,29 @@ const styles = StyleSheet.create({
         marginTop: 20,
         gap: 6,
     },
-    exampleEn: { fontSize: 15, color: colors.text, textAlign: 'center', lineHeight: 21 },
-    exampleFa: { fontSize: 14, color: colors.sub, textAlign: 'center', writingDirection: 'rtl' },
-    stars: { position: 'absolute', bottom: 16, left: 0, right: 0 },
-    overlay: { ...StyleSheet.absoluteFillObject, zIndex: 10, elevation: 10 },
-    speak: { position: 'absolute', top: 16, right: 16 },
+    exampleEn: {fontSize: 15, color: colors.text, textAlign: 'center', lineHeight: 21},
+    exampleFa: {fontSize: 14, color: colors.sub, textAlign: 'center', writingDirection: 'rtl'},
+    stars: {position: 'absolute', bottom: 16, left: 0, right: 0},
+    overlay: {...StyleSheet.absoluteFillObject, zIndex: 10, elevation: 10},
+    speak: { position: 'absolute', top: 16, left: 16 },
+    infoBtn: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: colors.primarySoft,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+    popup: { width: '100%', backgroundColor: colors.card, borderRadius: 24, padding: 22, gap: 12 },
+    popupWord: { fontSize: 28, fontWeight: '800', color: colors.text, textAlign: 'center' },
+    popupFa: { fontSize: 20, color: colors.sub, textAlign: 'center', writingDirection: 'rtl', marginBottom: 4 },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+    infoLabel: { fontSize: 14, color: colors.sub },
+    infoValue: { fontSize: 16, fontWeight: '700', color: colors.text },
+    closeBtn: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 12, borderRadius: 14, backgroundColor: colors.primarySoft, marginTop: 4 },
+    closeText: { fontSize: 16, fontWeight: '700', color: colors.primary },
 });
