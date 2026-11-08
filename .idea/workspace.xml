@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="move files to a master folder">
-      <change afterPath="$PROJECT_DIR$/supabase/seeds/01_sources.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/supabase/seeds/02_words.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/supabase/seeds/03_source_words.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/supabase/seeds/04_users.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/supabase/seeds/05_user_progress.sql" afterDir="false" />
+    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="Install Supabase, add migrations and seeders">
+      <change afterPath="$PROJECT_DIR$/apps/admin/lib/client.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/admin/lib/server.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/papita.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/papita.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/admin/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/admin/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
@@ -111,7 +108,7 @@
       <option name="presentableId" value="Default" />
       <updated>1794127246732</updated>
       <workItem from="1794127249647" duration="2578000" />
-      <workItem from="1794140556782" duration="4944000" />
+      <workItem from="1794140556782" duration="5397000" />
     </task>
     <task id="LOCAL-00001" summary="move files to a master folder">
       <option name="closed" value="true" />
@@ -121,7 +118,23 @@
       <option name="project" value="LOCAL" />
       <updated>1794140647779</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Install Supabase, add migrations and seeders">
+      <option name="closed" value="true" />
+      <created>1794145582474</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1794145582474</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Install Supabase, add migrations and seeders">
+      <option name="closed" value="true" />
+      <created>1794145727158</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1794145727158</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -140,6 +153,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="move files to a master folder" />
-    <option name="LAST_COMMIT_MESSAGE" value="move files to a master folder" />
+    <MESSAGE value="Install Supabase, add migrations and seeders" />
+    <option name="LAST_COMMIT_MESSAGE" value="Install Supabase, add migrations and seeders" />
   </component>
 </project>
