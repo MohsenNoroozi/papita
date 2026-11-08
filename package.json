@@ -12,5 +12,9 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0"
+  },
+  "scripts": {
+    "admin": "npm run dev --workspace apps/admin",
+    "mobile": "npm run start --workspace apps/mobile"
   }
 }

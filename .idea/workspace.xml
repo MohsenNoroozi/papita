@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="Install Supabase, add migrations and seeders">
-      <change afterPath="$PROJECT_DIR$/apps/admin/lib/client.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/admin/lib/server.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/papita.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/papita.iml" afterDir="false" />
+    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="update users seeder">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/auth.qN0tAA.zip.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/graphql_public.f3MqDw.zip.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/pgbouncer.E3m6rQ.zip.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/storage.e0Kwjw.zip" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/storage.e0Kwjw.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/storage.e0Kwjw.zip.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/supabase_functions.QNaTjw.zip.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/vault.MrKsBg.zip.tmp" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -27,7 +31,8 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/apps/admin" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
   </component>
   <component name="PackageJsonUpdateNotifier">
     <dismissed value="$PROJECT_DIR$/apps/admin/package.json" />
@@ -49,33 +54,40 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "javascript.preferred.runtime.type.id": "node",
-    "js.debugger.nextJs.config.created.client": "true",
-    "js.debugger.nextJs.config.created.server": "true",
-    "last_opened_file_path": "C:/Win-Projects/papita/supabase/seeds",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Win-Projects\\papita\\node_modules\\typescript\\lib"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Win-Projects/papita/supabase/seeds&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Win-Projects\\papita\\node_modules\\typescript\\lib&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Win-Projects\papita\supabase\seeds" />
       <recent name="C:\Win-Projects\papita\packages\shared" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Win-Projects\papita\apps\admin" />
+      <recent name="C:\Win-Projects\papita\apps\admin\lib\supabase" />
     </key>
   </component>
   <component name="RunManager" selected="npm.Next.js: server-side">
@@ -108,7 +120,8 @@
       <option name="presentableId" value="Default" />
       <updated>1794127246732</updated>
       <workItem from="1794127249647" duration="2578000" />
-      <workItem from="1794140556782" duration="5397000" />
+      <workItem from="1794140556782" duration="7926000" />
+      <workItem from="1794197710598" duration="830000" />
     </task>
     <task id="LOCAL-00001" summary="move files to a master folder">
       <option name="closed" value="true" />
@@ -134,7 +147,39 @@
       <option name="project" value="LOCAL" />
       <updated>1794145727158</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Supabase clients">
+      <option name="closed" value="true" />
+      <created>1794146042866</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1794146042866</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Supabase clients">
+      <option name="closed" value="true" />
+      <created>1794146200982</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1794146200982</updated>
+    </task>
+    <task id="LOCAL-00006" summary="update users seeder">
+      <option name="closed" value="true" />
+      <created>1794147128898</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1794147128898</updated>
+    </task>
+    <task id="LOCAL-00007" summary="update users seeder">
+      <option name="closed" value="true" />
+      <created>1794147250132</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1794147250132</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -152,8 +197,13 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/apps/admin" />
+    </ignored-roots>
     <MESSAGE value="move files to a master folder" />
     <MESSAGE value="Install Supabase, add migrations and seeders" />
-    <option name="LAST_COMMIT_MESSAGE" value="Install Supabase, add migrations and seeders" />
+    <MESSAGE value="Supabase clients" />
+    <MESSAGE value="update users seeder" />
+    <option name="LAST_COMMIT_MESSAGE" value="update users seeder" />
   </component>
 </project>
