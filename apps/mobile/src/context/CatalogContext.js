@@ -12,16 +12,18 @@ export function CatalogProvider({ children }) {
     const last = useRef(0);
 
     const sync = useCallback(async (force = false) => {
-        if (!catRef.current) return;
-        if (!force && Date.now() - last.current < MIN_GAP_MS) return;
+        if (!catRef.current) return false;
+        if (!force && Date.now() - last.current < MIN_GAP_MS) return true;
         last.current = Date.now();
         try {
             const fresh = await syncCatalog(catRef.current);
             catRef.current = fresh;
             setCat(fresh);
             setStatus('ok');
+            return true;
         } catch {
-            setStatus('error'); // آفلاین: اگر کاتالوگ محلی دارد مشکلی نیست
+            setStatus('error');
+            return false;
         }
     }, []);
 
@@ -45,6 +47,7 @@ export function CatalogProvider({ children }) {
         const base = {
             status,
             retry: () => sync(true),
+            refresh: () => sync(true),
             ready: false,
             words: [],
             sources: [],

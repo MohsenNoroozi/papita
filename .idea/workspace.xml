@@ -1,39 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="update users seeder">
-      <change afterPath="$PROJECT_DIR$/apps/mobile/src/components/LoginScreen.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/mobile/src/context/AuthContext.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/mobile/src/context/CatalogContext.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/mobile/src/data/catalogStore.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/mobile/src/lib/supabase.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/public.abK9xQ.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/public.abK9xQ.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/public.abK9xQ.zip" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/public.abK9xQ.zip" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/supabase_migrations.YEw1QA.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/postgres.edMnLQ/schema/supabase_migrations.YEw1QA.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/storage_vectors.zIXhYQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/storage_vectors.zIXhYQ/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1c36bcea-e520-48b9-b769-81671523bdfc/storage_v2/_src_/database/storage_vectors.zIXhYQ/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
+    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="use server DB data">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/review.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/review.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/[id]/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/[id]/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/[id]/learn.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/[id]/learn.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/[id]/quiz.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/[id]/quiz.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/source/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/_layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/_layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/components/FlashCard.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/components/FlashCard.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/context/ProgressContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/context/ProgressContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/context/SettingsContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/context/SettingsContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/data/words.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/data/words.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/leitner.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/leitner.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/storage.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/storage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supabase/migrations/20261108125242_init_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/supabase/migrations/20261108125242_init_schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supabase/seeds/04_users.sql" beforeDir="false" afterPath="$PROJECT_DIR$/supabase/seeds/04_users.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supabase/seeds/05_user_progress.sql" beforeDir="false" afterPath="$PROJECT_DIR$/supabase/seeds/05_user_progress.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/mobile/src/context/CatalogContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/context/CatalogContext.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -147,7 +118,7 @@
       <workItem from="1794140556782" duration="7926000" />
       <workItem from="1794197710598" duration="9929000" />
       <workItem from="1794208245797" duration="757000" />
-      <workItem from="1794227722481" duration="2826000" />
+      <workItem from="1794227722481" duration="3742000" />
     </task>
     <task id="LOCAL-00001" summary="move files to a master folder">
       <option name="closed" value="true" />
@@ -213,7 +184,23 @@
       <option name="project" value="LOCAL" />
       <updated>1794199647268</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="use server DB data">
+      <option name="closed" value="true" />
+      <created>1794230971550</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1794230971550</updated>
+    </task>
+    <task id="LOCAL-00010" summary="use server DB data">
+      <option name="closed" value="true" />
+      <created>1794231116832</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1794231116832</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -238,6 +225,7 @@
     <MESSAGE value="Install Supabase, add migrations and seeders" />
     <MESSAGE value="Supabase clients" />
     <MESSAGE value="update users seeder" />
-    <option name="LAST_COMMIT_MESSAGE" value="update users seeder" />
+    <MESSAGE value="use server DB data" />
+    <option name="LAST_COMMIT_MESSAGE" value="use server DB data" />
   </component>
 </project>

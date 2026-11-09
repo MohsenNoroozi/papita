@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -43,6 +43,9 @@ const OVERLAP = 104; // مقداری از کارت‌ها که روی بک‌گ�
 const { height } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(300, height * 0.4);
 
+const { words, refresh: refreshCatalog } = useCatalog();
+const [refreshing, setRefreshing] = useState(false);   // قبل از return زودهنگام `if (!ready)`
+
 function greeting() {
     const h = new Date().getHours();
     if (h < 11) return 'صبح بخیر';
@@ -59,11 +62,20 @@ function todayLabel() {
     }
 }
 
+const refreshAll = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    const [p, c] = await Promise.all([syncNow(), refreshCatalog()]);
+    setRefreshing(false);
+    if (!p || !c) {
+        Alert.alert('به‌روزرسانی نشد', 'اتصال به سرور برقرار نشد. اینترنت را بررسی کن.');
+    }
+};
+
 export default function Home() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { signOut } = useAuth();
-    const { words } = useCatalog();
     const { level, setLevel } = useSettings();
     const { ready, progress, reset, shiftDays, syncNow, pendingCount } = useProgress();
     const printStorage = () => inspectStorage();
@@ -153,6 +165,20 @@ export default function Home() {
                         <View style={[styles.bubble, styles.bubbleA]} pointerEvents="none" />
                         <View style={[styles.bubble, styles.bubbleB]} pointerEvents="none" />
                         <View style={[styles.bubble, styles.bubbleC]} pointerEvents="none" />
+
+                        <Pressable
+                            onPress={refreshAll}
+                            disabled={refreshing}
+                            hitSlop={10}
+                            accessibilityLabel="به‌روزرسانی از سرور"
+                            style={[styles.refreshBtn, { top: insets.top + 12 }]}
+                        >
+                            {refreshing ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Ionicons name="refresh" size={22} color="#fff" />
+                            )}
+                        </Pressable>
 
                         <Text style={styles.hello}>{greeting()} 👋</Text>
                         <Text style={styles.title}>امروز</Text>
@@ -390,4 +416,14 @@ const styles = StyleSheet.create({
     },
     devTitle: { fontSize: 12, color: colors.sub },
     devLink: { fontSize: 15, color: colors.primary },
+    refreshBtn: {
+        position: 'absolute',
+        left: 20,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.22)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 });
