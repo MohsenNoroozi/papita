@@ -220,7 +220,7 @@ export const WORDS = [
     {
         id: 30,
         en: 'sand',
-        fa: 'شنی',
+        fa: 'شن',
         sourceId: 15,
     },
     {

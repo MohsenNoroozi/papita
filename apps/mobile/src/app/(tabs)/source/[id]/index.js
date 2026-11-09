@@ -1,13 +1,19 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {useFocusEffect, useLocalSearchParams, useRouter} from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { getSource, getWordsOfSource } from '../../../../data/lookup';
+import { useCatalog } from '../../../../context/CatalogContext';
 import { useProgress } from '../../../../context/ProgressContext';
 import { useSettings } from '../../../../context/SettingsContext';
-import { INTERVALS_DAYS, MASTERED, DECK_SIZE_OPTIONS } from '../../../../leitner';
+import {
+    INTERVALS_DAYS,
+    MASTERED,
+    DECK_SIZE_OPTIONS,
+    isForLevel,
+    isRelevant,
+} from '../../../../leitner';
 import { colors } from '../../../../theme';
 import BoxesOverview from '../../../../components/BoxesOverview';
 import BoxStars from '../../../../components/BoxStars';
@@ -22,11 +28,12 @@ export default function SourceScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const sourceId = Number(id);
+    const { getSource, getWordsOfSource } = useCatalog();
     const source = getSource(sourceId);
-    const words = getWordsOfSource(sourceId);
+    const words = useMemo(() => getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
 
     const { progress } = useProgress();
-    const { deckSize, setDeckSize } = useSettings();
+    const { deckSize, setDeckSize, level } = useSettings();
     const [menuOpen, setMenuOpen] = useState(false);
 
     // با ترک صفحه، منو بسته شود
@@ -56,7 +63,10 @@ export default function SourceScreen() {
         );
     }
 
-    const unboxed = words.filter((w) => !progress[w.id]).length;
+    // کلمات مرتبط با سطح (یا داخل جعبه) برای مخرج‌ها؛ کلمات جدیدِ قابل پیشنهاد برای دکمه یادگیری
+    const relevantCount = words.filter((w) => isRelevant(w, progress, level)).length;
+    const belowCount = words.length - relevantCount;
+    const unboxed = words.filter((w) => !progress[w.id] && isForLevel(w, level)).length;
     const deckCount = Math.min(deckSize, unboxed);
 
     return (
@@ -66,7 +76,7 @@ export default function SourceScreen() {
             <FlatList
                 style={styles.flex}
                 data={words}
-                extraData={progress}
+                extraData={[progress, level]}
                 keyExtractor={(w) => String(w.id)}
                 contentContainerStyle={styles.list}
                 ListHeaderComponent={
@@ -74,13 +84,16 @@ export default function SourceScreen() {
                         <BoxesOverview
                             counts={boxData.counts}
                             mastered={boxData.mastered}
-                            total={words.length}
+                            total={relevantCount}
                         />
-                        <Text style={styles.count}>{words.length} کلمه</Text>
+                        <Text style={styles.count}>
+                            {words.length} کلمه
+                            {belowCount > 0 ? ` · ${belowCount} کلمه پایین‌تر از سطح تو` : ''}
+                        </Text>
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <View style={styles.row}>
+                    <View style={[styles.row, !isRelevant(item, progress, level) && styles.rowBelow]}>
                         <SpeakButton text={item.en} size={18} />
                         <View style={styles.wordCol}>
                             <Text style={styles.en}>{item.en}</Text>
@@ -161,6 +174,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 14,
     },
+    rowBelow: { opacity: 0.45 }, // کلمه پایین‌تر از سطح که در جعبه نیست
     wordCol: { flex: 1, gap: 4 },
     en: { fontSize: 18, fontWeight: '700', color: colors.text, textAlign: 'left' },
     stars: { alignSelf: 'flex-start', justifyContent: 'flex-start' },

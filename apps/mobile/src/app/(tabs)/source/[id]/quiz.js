@@ -3,12 +3,11 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
-import { WORDS } from '../../../../data/words';
-import { getSource, getWordsOfSource } from '../../../../data/lookup';
+import { useCatalog } from '../../../../context/CatalogContext';
 import { useProgress } from '../../../../context/ProgressContext';
+import { useSettings } from '../../../../context/SettingsContext';
 import { shuffle } from '../../../../leitner';
 import { speak, stopSpeaking } from '../../../../speech';
-import { useSettings } from '../../../../context/SettingsContext';
 import { colors } from '../../../../theme';
 import Button from '../../../../components/Button';
 import FadeIn from '../../../../components/FadeIn';
@@ -43,17 +42,18 @@ export default function SourceQuiz() {
     const router = useRouter();
     const { id, ids } = useLocalSearchParams();
     const sourceId = Number(id);
+    const { words: allWords, getSource, getWordsOfSource } = useCatalog();
     const source = getSource(sourceId);
-    const sourceWords = useMemo(() => getWordsOfSource(sourceId), [sourceId]);
+    const sourceWords = useMemo(() => getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
     const isDeckQuiz = !!ids;
     const words = useMemo(() => {
         if (!ids) return sourceWords; // آزمون کل منبع
         const wanted = new Set(String(ids).split(',').map(Number));
         // اگر منبع مشخص نباشد (مثلاً از صفحه مرور)، از بین همه کلمات انتخاب می‌شود
-        return (id ? sourceWords : WORDS).filter((w) => wanted.has(w.id));
-    }, [id, ids, sourceWords]);
+        return (id ? sourceWords : allWords).filter((w) => wanted.has(w.id));
+    }, [id, ids, sourceWords, allWords]);
     // گزینه‌های غلط ترجیحاً از کل کلمات همین منبع انتخاب می‌شوند
-    const pool = sourceWords.length >= 4 ? sourceWords : WORDS;
+    const pool = sourceWords.length >= 4 ? sourceWords : allWords;
 
     const { progress, addToBox1 } = useProgress();
     const { autoSpeak } = useSettings();

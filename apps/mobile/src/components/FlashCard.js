@@ -4,7 +4,7 @@ import {Ionicons} from '@expo/vector-icons';
 import SpeakButton from './SpeakButton';
 import BoxStars from './BoxStars';
 import {speak, AUTO_PLAY_ON_REVIEW} from '../speech';
-import {getSource} from '../data/lookup';
+import {useCatalog} from '../context/CatalogContext';
 import {INTERVALS_DAYS, MASTERED} from '../leitner';
 import {colors} from '../theme';
 
@@ -51,6 +51,7 @@ export default function FlashCard({
     const [infoOpen, setInfoOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
 
+    const {getSource} = useCatalog();
     const source = word.sourceId != null ? getSource(word.sourceId) : null;
     const boxLabel =
         box === undefined || box === null

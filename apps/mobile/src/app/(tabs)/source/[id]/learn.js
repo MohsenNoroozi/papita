@@ -3,9 +3,10 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { getSource, getWordsOfSource } from '../../../../data/lookup';
+import { useCatalog } from '../../../../context/CatalogContext';
 import { useProgress } from '../../../../context/ProgressContext';
-import { pickDeck } from '../../../../leitner';
+import { useSettings } from '../../../../context/SettingsContext';
+import { pickDeck, isForLevel } from '../../../../leitner';
 import { colors } from '../../../../theme';
 import Button from '../../../../components/Button';
 import DeckSession from '../../../../components/DeckSession';
@@ -15,14 +16,16 @@ export default function SourceLearn() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const sourceId = Number(id);
+    const { getSource, getWordsOfSource } = useCatalog();
     const source = getSource(sourceId);
-    const allWords = useMemo(() => getWordsOfSource(sourceId), [sourceId]);
+    const allWords = useMemo(() => getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
     const { getProgress, getSeen } = useProgress();
+    const { level } = useSettings();
 
-    // انتخاب دسته یادگیری: کلمات بیرون از جعبه، به ترتیب کمتر دیده‌شده‌ها، بعد id
+    // دسته یادگیری: کلمات بیرون از جعبه و مناسب سطح؛ هم‌سطح اول، بعد کمتر دیده‌شده‌ها، بعد id
     const pick = useCallback(
-        (size) => pickDeck(allWords, getProgress(), getSeen(), size),
-        [allWords, getProgress, getSeen]
+        (size) => pickDeck(allWords, getProgress(), getSeen(), size, level),
+        [allWords, getProgress, getSeen, level]
     );
 
     if (!source || allWords.length === 0) {
@@ -43,23 +46,34 @@ export default function SourceLearn() {
             pick={pick}
             quizHref={(ids) => `/source/${source.id}/quiz?ids=${ids.join(',')}`}
             onExit={() => router.back()}
-            renderEmpty={() => (
-                <SafeAreaView style={styles.screen} edges={['top']}>
-                    <ScreenHeader title={source.title} />
-                    <View style={styles.center}>
-                        <Text style={styles.emoji}>🎉</Text>
-                        <Text style={styles.title}>همه کلمات این منبع در جعبه‌ها هستند</Text>
-                        <View style={styles.actions}>
-                            <Button
-                                variant="soft"
-                                title="آزمون همه کلمات"
-                                onPress={() => router.push(`/source/${source.id}/quiz`)}
-                            />
-                            <Button variant="ghost" title="بازگشت" onPress={() => router.back()} />
+            renderEmpty={() => {
+                // کلماتی که بیرون از جعبه‌اند ولی چون زیر سطح کاربرند پیشنهاد نمی‌شوند
+                const progress = getProgress();
+                const belowLevel = allWords.filter(
+                    (w) => !progress[w.id] && !isForLevel(w, level)
+                ).length;
+                return (
+                    <SafeAreaView style={styles.screen} edges={['top']}>
+                        <ScreenHeader title={source.title} />
+                        <View style={styles.center}>
+                            <Text style={styles.emoji}>🎉</Text>
+                            <Text style={styles.title}>
+                                {belowLevel > 0
+                                    ? `کلمات مناسب سطحت تمام شد. ${belowLevel} کلمه پایین‌تر از سطح توست`
+                                    : 'همه کلمات این منبع در جعبه‌ها هستند'}
+                            </Text>
+                            <View style={styles.actions}>
+                                <Button
+                                    variant="soft"
+                                    title="آزمون همه کلمات"
+                                    onPress={() => router.push(`/source/${source.id}/quiz`)}
+                                />
+                                <Button variant="ghost" title="بازگشت" onPress={() => router.back()} />
+                            </View>
                         </View>
-                    </View>
-                </SafeAreaView>
-            )}
+                    </SafeAreaView>
+                );
+            }}
         />
     );
 }

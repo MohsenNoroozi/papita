@@ -3,7 +3,15 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.55">
     <root id="1">
       <DateStyle>mdy</DateStyle>
-      <Grants>5||-9223372036854775808|c|G
+      <Grants>1||-9223372036854775808|c|G
+1||10|c|G
+1||10|C|G
+1||10|T|G
+4||-9223372036854775808|c|G
+4||10|c|G
+4||10|C|G
+4||10|T|G
+5||-9223372036854775808|c|G
 5||16384|c|G
 5||16514|c|G
 5||16384|C|G
@@ -13,9 +21,9 @@
 5||-9223372036854775808|T|G
 5||16384|T|G
 5||16514|T|G</Grants>
-      <IntrospectionStateNumber>1571</IntrospectionStateNumber>
+      <IntrospectionStateNumber>1728</IntrospectionStateNumber>
       <ServerVersion>17.11</ServerVersion>
-      <StartupTime>1794143705</StartupTime>
+      <StartupTime>1794203707</StartupTime>
       <TimeZones>true ACDT
 true ACSST
 false ACST
@@ -810,7 +818,6 @@ false Zulu
 13265||10|C|G
 13265||-9223372036854775808|U|G
 13265||10|U|G</Grants>
-      <IntrospectionStateNumber>1551</IntrospectionStateNumber>
       <ObjectId>16691</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
@@ -889,22 +896,12 @@ false Zulu
 16664||16444|U|G
 16664||16445|U|G
 16664||16689|U|G</Grants>
-      <IntrospectionStateNumber>1571</IntrospectionStateNumber>
+      <IntrospectionStateNumber>1728</IntrospectionStateNumber>
       <ObjectId>5</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
     <database id="4" parent="1" name="storage_vectors">
-      <Grants>11||10|C|G
-11||-9223372036854775808|U|G
-11||10|U|G
-2200||6171|C|G
-2200||-9223372036854775808|U|G
-2200||6171|U|G
-13265||10|C|G
-13265||-9223372036854775808|U|G
-13265||10|U|G</Grants>
-      <IntrospectionStateNumber>1540</IntrospectionStateNumber>
-      <ObjectId>17961</ObjectId>
+      <ObjectId>17985</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
     <role id="5" parent="1" name="anon">
@@ -4529,9 +4526,6 @@ log_statement=none</Config>
     </language>
     <schema id="283" parent="3" name="_realtime">
       <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -5117,9 +5111,6 @@ log_statement=none</Config>
 17850||16384|w|G
 17850||16504|w|G
 17850||16514|w|G</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -5369,8 +5360,6 @@ log_statement=none</Config>
 16570||-9223372036854775808|X|G
 16570||10|X|G
 16570||16384|X|O</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
       <LastIntrospectionLevel>2</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -5380,9 +5369,6 @@ log_statement=none</Config>
     </schema>
     <schema id="286" parent="3" name="graphql">
       <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -5398,9 +5384,6 @@ log_statement=none</Config>
 16661||16443|X|G
 16661||16444|X|G
 16661||16445|X|G</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -5927,9 +5910,6 @@ log_statement=none</Config>
       <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
       <Grants>16387||10|X|G
 16387||16385|X|G</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -5959,31 +5939,24 @@ log_statement=none</Config>
 17873||16444|U|G
 17873||16445|U|G
 17874||16384|d|G
-17874||16443|d|G
 17874||16444|d|G
 17874||16445|d|G
 17874||16384|a|G
-17874||16443|a|G
 17874||16444|a|G
 17874||16445|a|G
 17874||16384|x|G
-17874||16443|x|G
 17874||16444|x|G
 17874||16445|x|G
 17874||16384|r|G
-17874||16443|r|G
 17874||16444|r|G
 17874||16445|r|G
 17874||16384|t|G
-17874||16443|t|G
 17874||16444|t|G
 17874||16445|t|G
 17874||16384|D|G
-17874||16443|D|G
 17874||16444|D|G
 17874||16445|D|G
 17874||16384|w|G
-17874||16443|w|G
 17874||16444|w|G
 17874||16445|w|G
 17884||16384|r|G
@@ -5999,127 +5972,110 @@ log_statement=none</Config>
 17884||16444|U|G
 17884||16445|U|G
 17885||16384|d|G
-17885||16443|d|G
 17885||16444|d|G
 17885||16445|d|G
 17885||16384|a|G
-17885||16443|a|G
 17885||16444|a|G
 17885||16445|a|G
 17885||16384|x|G
-17885||16443|x|G
 17885||16444|x|G
 17885||16445|x|G
 17885||16384|r|G
-17885||16443|r|G
 17885||16444|r|G
 17885||16445|r|G
 17885||16384|t|G
-17885||16443|t|G
 17885||16444|t|G
 17885||16445|t|G
 17885||16384|D|G
-17885||16443|D|G
 17885||16444|D|G
 17885||16445|D|G
 17885||16384|w|G
-17885||16443|w|G
 17885||16444|w|G
 17885||16445|w|G
 17897||16384|d|G
-17897||16443|d|G
 17897||16444|d|G
 17897||16445|d|G
 17897||16384|a|G
-17897||16443|a|G
 17897||16444|a|G
 17897||16445|a|G
 17897||16384|x|G
-17897||16443|x|G
 17897||16444|x|G
 17897||16445|x|G
 17897||16384|r|G
-17897||16443|r|G
 17897||16444|r|G
 17897||16445|r|G
 17897||16384|t|G
-17897||16443|t|G
 17897||16444|t|G
 17897||16445|t|G
 17897||16384|D|G
-17897||16443|D|G
 17897||16444|D|G
 17897||16445|D|G
 17897||16384|w|G
-17897||16443|w|G
 17897||16444|w|G
 17897||16445|w|G
-17917||16384|d|G
-17917||16443|d|G
-17917||16444|d|G
-17917||16445|d|G
-17917||16384|a|G
-17917||16443|a|G
-17917||16444|a|G
-17917||16445|a|G
-17917||16384|x|G
-17917||16443|x|G
-17917||16444|x|G
-17917||16445|x|G
-17917||16384|r|G
-17917||16443|r|G
-17917||16444|r|G
-17917||16445|r|G
-17917||16384|t|G
-17917||16443|t|G
-17917||16444|t|G
-17917||16445|t|G
-17917||16384|D|G
-17917||16443|D|G
-17917||16444|D|G
-17917||16445|D|G
-17917||16384|w|G
-17917||16443|w|G
-17917||16444|w|G
-17917||16445|w|G
-17932||16384|d|G
-17932||16443|d|G
-17932||16444|d|G
-17932||16445|d|G
-17932||16384|a|G
-17932||16443|a|G
-17932||16444|a|G
-17932||16445|a|G
-17932||16384|x|G
-17932||16443|x|G
-17932||16444|x|G
-17932||16445|x|G
-17932||16384|r|G
-17932||16443|r|G
-17932||16444|r|G
-17932||16445|r|G
-17932||16384|t|G
-17932||16443|t|G
-17932||16444|t|G
-17932||16445|t|G
-17932||16384|D|G
-17932||16443|D|G
-17932||16444|D|G
-17932||16445|D|G
-17932||16384|w|G
-17932||16443|w|G
-17932||16444|w|G
-17932||16445|w|G
-17952||-9223372036854775808|X|G
-17952||16384|X|G
-17952||16443|X|G
-17952||16444|X|G
-17952||16445|X|G</Grants>
-      <LastIntrospectionL1Xid>1571</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1571</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1571</LastIntrospectionL3Xid>
+17921||16384|d|G
+17921||16444|d|G
+17921||16445|d|G
+17921||16384|a|G
+17921||16444|a|G
+17921||16445|a|G
+17921||16384|x|G
+17921||16444|x|G
+17921||16445|x|G
+17921||16384|r|G
+17921||16444|r|G
+17921||16445|r|G
+17921||16384|t|G
+17921||16444|t|G
+17921||16445|t|G
+17921||16384|D|G
+17921||16444|D|G
+17921||16445|D|G
+17921||16384|w|G
+17921||16444|w|G
+17921||16445|w|G
+17936||16384|d|G
+17936||16444|d|G
+17936||16445|d|G
+17936||16384|a|G
+17936||16444|a|G
+17936||16445|a|G
+17936||16384|x|G
+17936||16444|x|G
+17936||16445|x|G
+17936||16384|r|G
+17936||16444|r|G
+17936||16445|r|G
+17936||16384|t|G
+17936||16444|t|G
+17936||16445|t|G
+17936||16384|D|G
+17936||16444|D|G
+17936||16445|D|G
+17936||16384|w|G
+17936||16444|w|G
+17936||16445|w|G
+17955||-9223372036854775808|X|G
+17955||16384|X|G
+17955||16443|X|G
+17955||16444|X|G
+17955||16445|X|G
+17961||-9223372036854775808|X|G
+17961||16384|X|G
+17961||16443|X|G
+17961||16444|X|G
+17961||16445|X|G
+17970||16384|X|G
+17970||16444|X|G
+17970||16445|X|G
+17971||16384|X|G
+17971||16444|X|G
+17971||16445|X|G</Grants>
+      <LastIntrospectionL1Xid>1728</LastIntrospectionL1Xid>
+      <LastIntrospectionL2Xid>1728</LastIntrospectionL2Xid>
+      <LastIntrospectionL3Xid>1728</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
-      <LastIntrospectionLocalTimestamp>2026-11-08.13:17:41</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2026-11-09.06:02:39</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
       <ObjectId>2200</ObjectId>
       <StateNumber>765</StateNumber>
@@ -6411,9 +6367,6 @@ log_statement=none</Config>
 16957||16384|w|G
 16957||16514|w|G
 16957||16776|w|G</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -6637,9 +6590,6 @@ log_statement=none</Config>
 17266||16384|w|G
 17266||16445|w|G
 17266||16506|w|G</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -6739,9 +6689,6 @@ log_statement=none</Config>
 16688||16444|X|G
 16688||16445|X|G
 16688||16689|X|G</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -6750,13 +6697,6 @@ log_statement=none</Config>
       <OwnerName>supabase_admin</OwnerName>
     </schema>
     <schema id="295" parent="3" name="supabase_migrations">
-      <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
-      <LastIntrospectionLevel>3</LastIntrospectionLevel>
-      <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
-      <LastIntrospectionVersion>260210</LastIntrospectionVersion>
       <ObjectId>17864</ObjectId>
       <StateNumber>1233</StateNumber>
       <OwnerName>postgres</OwnerName>
@@ -6800,9 +6740,6 @@ log_statement=none</Config>
 16626||10|X|G
 16626||16445|X|G
 16626||16384|X|O</Grants>
-      <LastIntrospectionL1Xid>1545</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>1545</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>1545</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2026-11-08.13:16:59</LastIntrospectionLocalTimestamp>
       <LastIntrospectionVersion>260210</LastIntrospectionVersion>
@@ -6850,18 +6787,43 @@ log_statement=none</Config>
       <StateNumber>893</StateNumber>
       <CallRoutineId>16560</CallRoutineId>
     </trigger>
-    <routine id="303" parent="291" name="is_admin">
+    <routine id="303" parent="291" name="catalog_changes">
+      <ArgumentsDefinition>since timestamp with time zone</ArgumentsDefinition>
       <DetailsLevel>3</DetailsLevel>
-      <ObjectId>17952</ObjectId>
-      <ResultsDefinition>boolean</ResultsDefinition>
+      <ObjectId>17970</ObjectId>
+      <ResultsDefinition>jsonb</ResultsDefinition>
       <Rows>0.0</Rows>
-      <SourceTextLength>83</SourceTextLength>
+      <SourceTextLength>1337</SourceTextLength>
       <StateNumber>1234</StateNumber>
       <VolatilityKind>stable</VolatilityKind>
       <LanguageName>sql</LanguageName>
       <OwnerName>postgres</OwnerName>
     </routine>
-    <routine id="304" parent="291" name="set_updated_at">
+    <routine id="304" parent="291" name="handle_new_user">
+      <ConfigurationParameters>search_path=public</ConfigurationParameters>
+      <DetailsLevel>3</DetailsLevel>
+      <ObjectId>17955</ObjectId>
+      <PgRoutineKind>pg-trigger</PgRoutineKind>
+      <ResultsDefinition>trigger</ResultsDefinition>
+      <Rows>0.0</Rows>
+      <SecurityDefiner>1</SecurityDefiner>
+      <SourceTextLength>104</SourceTextLength>
+      <StateNumber>1234</StateNumber>
+      <LanguageName>plpgsql</LanguageName>
+      <OwnerName>postgres</OwnerName>
+    </routine>
+    <routine id="305" parent="291" name="is_admin">
+      <DetailsLevel>3</DetailsLevel>
+      <ObjectId>17961</ObjectId>
+      <ResultsDefinition>boolean</ResultsDefinition>
+      <Rows>0.0</Rows>
+      <SourceTextLength>72</SourceTextLength>
+      <StateNumber>1234</StateNumber>
+      <VolatilityKind>stable</VolatilityKind>
+      <LanguageName>sql</LanguageName>
+      <OwnerName>postgres</OwnerName>
+    </routine>
+    <routine id="306" parent="291" name="set_updated_at">
       <DetailsLevel>3</DetailsLevel>
       <ObjectId>17872</ObjectId>
       <PgRoutineKind>pg-trigger</PgRoutineKind>
@@ -6872,7 +6834,18 @@ log_statement=none</Config>
       <LanguageName>plpgsql</LanguageName>
       <OwnerName>postgres</OwnerName>
     </routine>
-    <sequence id="305" parent="291" name="sources_id_seq">
+    <routine id="307" parent="291" name="sync_progress">
+      <ArgumentsDefinition>changes jsonb, since timestamp with time zone</ArgumentsDefinition>
+      <DetailsLevel>3</DetailsLevel>
+      <ObjectId>17971</ObjectId>
+      <ResultsDefinition>jsonb</ResultsDefinition>
+      <Rows>0.0</Rows>
+      <SourceTextLength>1122</SourceTextLength>
+      <StateNumber>1234</StateNumber>
+      <LanguageName>plpgsql</LanguageName>
+      <OwnerName>postgres</OwnerName>
+    </routine>
+    <sequence id="308" parent="291" name="sources_id_seq">
       <DetailsLevel>2</DetailsLevel>
       <ObjectId>17873</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
@@ -6881,7 +6854,7 @@ log_statement=none</Config>
       <StoredType>bigint|0s</StoredType>
       <OwnerName>postgres</OwnerName>
     </sequence>
-    <sequence id="306" parent="291" name="words_id_seq">
+    <sequence id="309" parent="291" name="words_id_seq">
       <DetailsLevel>2</DetailsLevel>
       <ObjectId>17884</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
@@ -6890,63 +6863,87 @@ log_statement=none</Config>
       <StoredType>bigint|0s</StoredType>
       <OwnerName>postgres</OwnerName>
     </sequence>
-    <table id="307" parent="291" name="profiles">
+    <table id="310" parent="291" name="profiles">
       <DetailsLevel>2</DetailsLevel>
-      <ObjectId>17917</ObjectId>
+      <ObjectId>17921</ObjectId>
       <StateNumber>1234</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="308" parent="291" name="source_words">
+    <table id="311" parent="291" name="source_words">
       <DetailsLevel>2</DetailsLevel>
       <ObjectId>17897</ObjectId>
       <StateNumber>1234</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="309" parent="291" name="sources">
+    <table id="312" parent="291" name="sources">
       <DetailsLevel>2</DetailsLevel>
       <ObjectId>17874</ObjectId>
       <StateNumber>1234</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="310" parent="291" name="user_progress">
+    <table id="313" parent="291" name="user_progress">
       <DetailsLevel>2</DetailsLevel>
-      <ObjectId>17932</ObjectId>
+      <ObjectId>17936</ObjectId>
       <StateNumber>1234</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="311" parent="291" name="words">
+    <table id="314" parent="291" name="words">
       <DetailsLevel>2</DetailsLevel>
       <ObjectId>17885</ObjectId>
       <StateNumber>1234</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <argument id="312" parent="303">
+    <argument id="315" parent="303">
       <ArgumentDirection>R</ArgumentDirection>
-      <StoredType>boolean|0s</StoredType>
+      <StoredType>jsonb|0s</StoredType>
     </argument>
-    <argument id="313" parent="304">
+    <argument id="316" parent="303" name="since">
+      <Position>1</Position>
+      <StoredType>timestamp with time zone|0s</StoredType>
+    </argument>
+    <argument id="317" parent="304">
       <ArgumentDirection>R</ArgumentDirection>
       <StoredType>trigger|0s</StoredType>
     </argument>
-    <check id="314" parent="307" name="profiles_level_check">
+    <argument id="318" parent="305">
+      <ArgumentDirection>R</ArgumentDirection>
+      <StoredType>boolean|0s</StoredType>
+    </argument>
+    <argument id="319" parent="306">
+      <ArgumentDirection>R</ArgumentDirection>
+      <StoredType>trigger|0s</StoredType>
+    </argument>
+    <argument id="320" parent="307">
+      <ArgumentDirection>R</ArgumentDirection>
+      <StoredType>jsonb|0s</StoredType>
+    </argument>
+    <argument id="321" parent="307" name="changes">
+      <Position>1</Position>
+      <StoredType>jsonb|0s</StoredType>
+    </argument>
+    <argument id="322" parent="307" name="since">
+      <Position>2</Position>
+      <StoredType>timestamp with time zone|0s</StoredType>
+    </argument>
+    <check id="323" parent="310" name="profiles_level_check">
       <ColNames>level</ColNames>
-      <ObjectId>17922</ObjectId>
+      <ObjectId>17926</ObjectId>
       <Predicate>(level &gt;= 1) AND (level &lt;= 6)</Predicate>
       <StateNumber>1234</StateNumber>
     </check>
-    <column id="315" parent="307" name="id">
+    <column id="324" parent="310" name="id">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>uuid|0s</StoredType>
       <TypeId>2950</TypeId>
     </column>
-    <column id="316" parent="307" name="level">
+    <column id="325" parent="310" name="level">
       <DefaultExpression>1</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>2</Position>
@@ -6954,7 +6951,7 @@ log_statement=none</Config>
       <StoredType>smallint|0s</StoredType>
       <TypeId>21</TypeId>
     </column>
-    <column id="317" parent="307" name="settings">
+    <column id="326" parent="310" name="settings">
       <DefaultExpression>&apos;{}&apos;::jsonb</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>3</Position>
@@ -6962,53 +6959,54 @@ log_statement=none</Config>
       <StoredType>jsonb|0s</StoredType>
       <TypeId>3802</TypeId>
     </column>
-    <foreign-key id="318" parent="307" name="profiles_id_fkey">
+    <foreign-key id="327" parent="310" name="profiles_id_fkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17927</ObjectId>
+      <ObjectId>17931</ObjectId>
       <OnDelete>cascade</OnDelete>
       <StateNumber>1234</StateNumber>
       <RefKeyColPositions>2</RefKeyColPositions>
       <RefTableId>16458</RefTableId>
     </foreign-key>
-    <index id="319" parent="307" name="profiles_pkey">
+    <index id="328" parent="310" name="profiles_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17925</ObjectId>
+      <ObjectId>17929</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="320" parent="307" name="profiles_pkey">
+    <key id="329" parent="310" name="profiles_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17926</ObjectId>
+      <ObjectId>17930</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
-      <UnderlyingIndexId>17925</UnderlyingIndexId>
+      <UnderlyingIndexId>17929</UnderlyingIndexId>
     </key>
-    <security-policy id="321" parent="307" name="own">
+    <security-policy id="330" parent="310" name="own">
       <CheckExpression>(id = auth.uid())</CheckExpression>
-      <ObjectId>17959</ObjectId>
+      <ObjectId>17968</ObjectId>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>(id = auth.uid())</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <column id="322" parent="308" name="source_id">
+    <column id="331" parent="311" name="source_id">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="323" parent="308" name="word_id">
+    <column id="332" parent="311" name="word_id">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="324" parent="308" name="position">
+    <column id="333" parent="311" name="position">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>3</Position>
@@ -7016,19 +7014,19 @@ log_statement=none</Config>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="325" parent="308" name="example">
+    <column id="334" parent="311" name="example">
       <Position>4</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="326" parent="308" name="example_fa">
+    <column id="335" parent="311" name="example_fa">
       <Position>5</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="327" parent="308" name="deleted">
+    <column id="336" parent="311" name="deleted">
       <DefaultExpression>false</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>6</Position>
@@ -7036,7 +7034,7 @@ log_statement=none</Config>
       <StoredType>boolean|0s</StoredType>
       <TypeId>16</TypeId>
     </column>
-    <column id="328" parent="308" name="updated_at">
+    <column id="337" parent="311" name="updated_at">
       <DefaultExpression>now()</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>7</Position>
@@ -7044,7 +7042,7 @@ log_statement=none</Config>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <foreign-key id="329" parent="308" name="source_words_source_id_fkey">
+    <foreign-key id="338" parent="311" name="source_words_source_id_fkey">
       <ColNames>source_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17907</ObjectId>
@@ -7052,7 +7050,7 @@ log_statement=none</Config>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>17874</RefTableId>
     </foreign-key>
-    <foreign-key id="330" parent="308" name="source_words_word_id_fkey">
+    <foreign-key id="339" parent="311" name="source_words_word_id_fkey">
       <ColNames>word_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17912</ObjectId>
@@ -7060,7 +7058,7 @@ log_statement=none</Config>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>17885</RefTableId>
     </foreign-key>
-    <index id="331" parent="308" name="source_words_pkey">
+    <index id="340" parent="311" name="source_words_pkey">
       <ColNames>source_id
 word_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
@@ -7070,35 +7068,49 @@ word_id</ColNames>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="332" parent="308" name="source_words_pkey">
+    <index id="341" parent="311" name="source_words_word_idx">
+      <ColNames>word_id</ColNames>
+      <ObjectId>17920</ObjectId>
+      <StateNumber>1234</StateNumber>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <index id="342" parent="311" name="source_words_updated_idx">
+      <ColNames>updated_at</ColNames>
+      <ObjectId>17919</ObjectId>
+      <StateNumber>1234</StateNumber>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="343" parent="311" name="source_words_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17906</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
       <UnderlyingIndexId>17905</UnderlyingIndexId>
     </key>
-    <security-policy id="333" parent="308" name="admin_write">
+    <security-policy id="344" parent="311" name="admin_write">
       <CheckExpression>is_admin()</CheckExpression>
-      <ObjectId>17958</ObjectId>
+      <ObjectId>17967</ObjectId>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>is_admin()</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <security-policy id="334" parent="308" name="read_all">
-      <ObjectId>17955</ObjectId>
+    <security-policy id="345" parent="311" name="read_authenticated">
+      <ObjectId>17964</ObjectId>
       <OperationType>select</OperationType>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>true</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <trigger id="335" parent="308" name="t_sw">
+    <trigger id="346" parent="311" name="t_sw">
       <Events>U</Events>
-      <ObjectId>17950</ObjectId>
+      <ObjectId>17959</ObjectId>
       <StateNumber>1234</StateNumber>
       <Turn>before-row</Turn>
       <CallRoutineId>17872</CallRoutineId>
     </trigger>
-    <column id="336" parent="309" name="id">
+    <column id="347" parent="312" name="id">
       <GeneratedKind>identity-always</GeneratedKind>
       <NotNull>1</NotNull>
       <Position>1</Position>
@@ -7107,20 +7119,20 @@ word_id</ColNames>
       <SequenceId>17873</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="337" parent="309" name="title">
+    <column id="348" parent="312" name="title">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="338" parent="309" name="collection_id">
+    <column id="349" parent="312" name="collection_id">
       <Position>3</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="339" parent="309" name="position">
+    <column id="350" parent="312" name="position">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>4</Position>
@@ -7128,7 +7140,7 @@ word_id</ColNames>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="340" parent="309" name="deleted">
+    <column id="351" parent="312" name="deleted">
       <DefaultExpression>false</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>5</Position>
@@ -7136,7 +7148,7 @@ word_id</ColNames>
       <StoredType>boolean|0s</StoredType>
       <TypeId>16</TypeId>
     </column>
-    <column id="341" parent="309" name="updated_at">
+    <column id="352" parent="312" name="updated_at">
       <DefaultExpression>now()</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>6</Position>
@@ -7144,7 +7156,7 @@ word_id</ColNames>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <index id="342" parent="309" name="sources_pkey">
+    <index id="353" parent="312" name="sources_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17882</ObjectId>
@@ -7153,124 +7165,161 @@ word_id</ColNames>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="343" parent="309" name="sources_pkey">
+    <index id="354" parent="312" name="sources_updated_idx">
+      <ColNames>updated_at</ColNames>
+      <ObjectId>17917</ObjectId>
+      <StateNumber>1234</StateNumber>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="355" parent="312" name="sources_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17883</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
       <UnderlyingIndexId>17882</UnderlyingIndexId>
     </key>
-    <security-policy id="344" parent="309" name="admin_write">
+    <security-policy id="356" parent="312" name="admin_write">
       <CheckExpression>is_admin()</CheckExpression>
-      <ObjectId>17956</ObjectId>
+      <ObjectId>17965</ObjectId>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>is_admin()</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <security-policy id="345" parent="309" name="read_all">
-      <ObjectId>17953</ObjectId>
+    <security-policy id="357" parent="312" name="read_authenticated">
+      <ObjectId>17962</ObjectId>
       <OperationType>select</OperationType>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>true</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <trigger id="346" parent="309" name="t_sources">
+    <trigger id="358" parent="312" name="t_sources">
       <Events>U</Events>
-      <ObjectId>17948</ObjectId>
+      <ObjectId>17957</ObjectId>
       <StateNumber>1234</StateNumber>
       <Turn>before-row</Turn>
       <CallRoutineId>17872</CallRoutineId>
     </trigger>
-    <column id="347" parent="310" name="user_id">
+    <check id="359" parent="313" name="box_required">
+      <ColNames>deleted
+box</ColNames>
+      <ObjectId>17941</ObjectId>
+      <Predicate>deleted OR (box IS NOT NULL)</Predicate>
+      <StateNumber>1234</StateNumber>
+    </check>
+    <column id="360" parent="313" name="user_id">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>uuid|0s</StoredType>
       <TypeId>2950</TypeId>
     </column>
-    <column id="348" parent="310" name="word_id">
+    <column id="361" parent="313" name="word_id">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="349" parent="310" name="box">
-      <NotNull>1</NotNull>
+    <column id="362" parent="313" name="box">
       <Position>3</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>smallint|0s</StoredType>
       <TypeId>21</TypeId>
     </column>
-    <column id="350" parent="310" name="due">
+    <column id="363" parent="313" name="due">
       <Position>4</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <column id="351" parent="310" name="updated_at">
-      <DefaultExpression>now()</DefaultExpression>
+    <column id="364" parent="313" name="u">
       <NotNull>1</NotNull>
       <Position>5</Position>
+      <StateNumber>1234</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="365" parent="313" name="deleted">
+      <DefaultExpression>false</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StateNumber>1234</StateNumber>
+      <StoredType>boolean|0s</StoredType>
+      <TypeId>16</TypeId>
+    </column>
+    <column id="366" parent="313" name="updated_at">
+      <DefaultExpression>now()</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>7</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <foreign-key id="352" parent="310" name="user_progress_user_id_fkey">
+    <foreign-key id="367" parent="313" name="user_progress_user_id_fkey">
       <ColNames>user_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17938</ObjectId>
+      <ObjectId>17944</ObjectId>
       <OnDelete>cascade</OnDelete>
       <StateNumber>1234</StateNumber>
       <RefKeyColPositions>2</RefKeyColPositions>
       <RefTableId>16458</RefTableId>
     </foreign-key>
-    <foreign-key id="353" parent="310" name="user_progress_word_id_fkey">
+    <foreign-key id="368" parent="313" name="user_progress_word_id_fkey">
       <ColNames>word_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17943</ObjectId>
+      <ObjectId>17949</ObjectId>
       <StateNumber>1234</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>17885</RefTableId>
     </foreign-key>
-    <index id="354" parent="310" name="user_progress_pkey">
+    <index id="369" parent="313" name="user_progress_pkey">
       <ColNames>user_id
 word_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17936</ObjectId>
+      <ObjectId>17942</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="355" parent="310" name="user_progress_pkey">
+    <index id="370" parent="313" name="user_progress_sync_idx">
+      <ColNames>user_id
+updated_at</ColNames>
+      <ObjectId>17954</ObjectId>
+      <StateNumber>1234</StateNumber>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="371" parent="313" name="user_progress_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>17937</ObjectId>
+      <ObjectId>17943</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
-      <UnderlyingIndexId>17936</UnderlyingIndexId>
+      <UnderlyingIndexId>17942</UnderlyingIndexId>
     </key>
-    <security-policy id="356" parent="310" name="own">
+    <security-policy id="372" parent="313" name="own">
       <CheckExpression>(user_id = auth.uid())</CheckExpression>
-      <ObjectId>17960</ObjectId>
+      <ObjectId>17969</ObjectId>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>(user_id = auth.uid())</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <trigger id="357" parent="310" name="t_up">
+    <trigger id="373" parent="313" name="t_up">
       <Events>U</Events>
-      <ObjectId>17951</ObjectId>
+      <ObjectId>17960</ObjectId>
       <StateNumber>1234</StateNumber>
       <Turn>before-row</Turn>
       <CallRoutineId>17872</CallRoutineId>
     </trigger>
-    <check id="358" parent="311" name="words_level_check">
+    <check id="374" parent="314" name="words_level_check">
       <ColNames>level</ColNames>
       <ObjectId>17891</ObjectId>
       <Predicate>(level &gt;= 1) AND (level &lt;= 6)</Predicate>
       <StateNumber>1234</StateNumber>
     </check>
-    <column id="359" parent="311" name="id">
+    <column id="375" parent="314" name="id">
       <GeneratedKind>identity-always</GeneratedKind>
       <NotNull>1</NotNull>
       <Position>1</Position>
@@ -7279,27 +7328,27 @@ word_id</ColNames>
       <SequenceId>17884</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="360" parent="311" name="en">
+    <column id="376" parent="314" name="en">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="361" parent="311" name="sense">
+    <column id="377" parent="314" name="sense">
       <Position>3</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="362" parent="311" name="fa">
+    <column id="378" parent="314" name="fa">
       <NotNull>1</NotNull>
       <Position>4</Position>
       <StateNumber>1234</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="363" parent="311" name="level">
+    <column id="379" parent="314" name="level">
       <DefaultExpression>1</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>5</Position>
@@ -7307,7 +7356,7 @@ word_id</ColNames>
       <StoredType>smallint|0s</StoredType>
       <TypeId>21</TypeId>
     </column>
-    <column id="364" parent="311" name="deleted">
+    <column id="380" parent="314" name="deleted">
       <DefaultExpression>false</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>6</Position>
@@ -7315,7 +7364,7 @@ word_id</ColNames>
       <StoredType>boolean|0s</StoredType>
       <TypeId>16</TypeId>
     </column>
-    <column id="365" parent="311" name="updated_at">
+    <column id="381" parent="314" name="updated_at">
       <DefaultExpression>now()</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>7</Position>
@@ -7323,7 +7372,7 @@ word_id</ColNames>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <index id="366" parent="311" name="words_pkey">
+    <index id="382" parent="314" name="words_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17894</ObjectId>
@@ -7332,7 +7381,7 @@ word_id</ColNames>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="367" parent="311" name="words_en_sense_uq">
+    <index id="383" parent="314" name="words_en_sense_uq">
       <ColNames>&#x1b;lower(en)
 &#x1b;COALESCE(sense, &apos;&apos;::text)</ColNames>
       <Condition>(NOT deleted)</Condition>
@@ -7348,30 +7397,38 @@ default</CollationNames>
       <CollationParentNames>pg_catalog
 pg_catalog</CollationParentNames>
     </index>
-    <key id="368" parent="311" name="words_pkey">
+    <index id="384" parent="314" name="words_updated_idx">
+      <ColNames>updated_at</ColNames>
+      <ObjectId>17918</ObjectId>
+      <StateNumber>1234</StateNumber>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="385" parent="314" name="words_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>17895</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1234</StateNumber>
       <UnderlyingIndexId>17894</UnderlyingIndexId>
     </key>
-    <security-policy id="369" parent="311" name="admin_write">
+    <security-policy id="386" parent="314" name="admin_write">
       <CheckExpression>is_admin()</CheckExpression>
-      <ObjectId>17957</ObjectId>
+      <ObjectId>17966</ObjectId>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>is_admin()</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <security-policy id="370" parent="311" name="read_all">
-      <ObjectId>17954</ObjectId>
+    <security-policy id="387" parent="314" name="read_authenticated">
+      <ObjectId>17963</ObjectId>
       <OperationType>select</OperationType>
       <Permissive>1</Permissive>
       <StateNumber>1234</StateNumber>
       <UsingExpression>true</UsingExpression>
+      <RoleIds>16444</RoleIds>
     </security-policy>
-    <trigger id="371" parent="311" name="t_words">
+    <trigger id="388" parent="314" name="t_words">
       <Events>U</Events>
-      <ObjectId>17949</ObjectId>
+      <ObjectId>17958</ObjectId>
       <StateNumber>1234</StateNumber>
       <Turn>before-row</Turn>
       <CallRoutineId>17872</CallRoutineId>

@@ -3,7 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-import { WORDS } from '../../data/words';
+import { useCatalog } from '../../context/CatalogContext';
 import { useProgress } from '../../context/ProgressContext';
 import { pickDueDeck } from '../../leitner';
 import { colors } from '../../theme';
@@ -13,12 +13,13 @@ import ScreenHeader from '../../components/ScreenHeader';
 
 export default function ReviewScreen() {
     const router = useRouter();
+    const { words } = useCatalog();
     const { ready, getProgress } = useProgress();
 
-    // کلمات سررسیدشده از همه منابع؛ اول عقب‌افتاده‌ترین‌ها
+    // کلمات سررسیدشده از همه منابع؛ اول عقب‌افتاده‌ترین‌ها (فیلتر سطح ندارد)
     const pick = useCallback(
-        (size, exclude) => pickDueDeck(WORDS, getProgress(), size, exclude),
-        [getProgress]
+        (size, exclude) => pickDueDeck(words, getProgress(), size, exclude),
+        [words, getProgress]
     );
 
     if (!ready) {
@@ -34,7 +35,6 @@ export default function ReviewScreen() {
             mode="review"
             title="مرور"
             showBack={false}
-            refreshOnFocus
             pick={pick}
             quizHref={(ids) => `/quiz?ids=${ids.join(',')}`}
             onExit={() => router.navigate('/')}

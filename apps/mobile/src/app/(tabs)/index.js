@@ -9,14 +9,25 @@ import {
     ImageBackground,
     StatusBar,
     Dimensions,
+    Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { WORDS } from '../../data/words';
+import { useAuth } from '../../context/AuthContext';
+import { useCatalog } from '../../context/CatalogContext';
 import { useProgress } from '../../context/ProgressContext';
-import { getDueWords, getNewWords, MASTERED, INTERVALS_DAYS } from '../../leitner';
+import { useSettings } from '../../context/SettingsContext';
+import {
+    getDueWords,
+    getNewWords,
+    isRelevant,
+    MASTERED,
+    INTERVALS_DAYS,
+    LEVELS,
+    levelLabel,
+} from '../../leitner';
 import { colors } from '../../theme';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
@@ -51,7 +62,10 @@ function todayLabel() {
 export default function Home() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { ready, progress, reset, shiftDays } = useProgress();
+    const { signOut } = useAuth();
+    const { words } = useCatalog();
+    const { level, setLevel } = useSettings();
+    const { ready, progress, reset, shiftDays, syncNow, pendingCount } = useProgress();
     const printStorage = () => inspectStorage();
 
     // متن نوار وضعیت روی عکس تیره باید روشن باشد
@@ -63,27 +77,36 @@ export default function Home() {
     );
 
     const stats = useMemo(() => {
-        const entries = Object.values(progress);
-        const mastered = entries.filter((e) => e.box === MASTERED).length;
+        // فقط کلمات مرتبط با سطح حساب می‌شوند (کلمه‌ای که در جعبه است همیشه مرتبط است)
+        const relevant = words.filter((w) => isRelevant(w, progress, level));
 
         // پیشرفت کلی = یادگیری + مرور:
         // کلمه‌ای که هنوز در جعبه نیست ۰ امتیاز دارد، ورود به جعبه ۱ اولین قدم است،
         // و هر بار که با مرور موفق به جعبه بالاتر می‌رود امتیازش بیشتر می‌شود تا ۱ (کاملاً یادگرفته).
         const steps = INTERVALS_DAYS.length + 1;
-        const score = entries.reduce(
-            (sum, e) => sum + (e.box === MASTERED ? 1 : Math.min(e.box, steps) / steps),
-            0
-        );
+        let score = 0;
+        let mastered = 0;
+        let boxed = 0;
+        for (const w of relevant) {
+            const e = progress[w.id];
+            if (!e) continue;
+            boxed += 1;
+            if (e.box === MASTERED) {
+                mastered += 1;
+                score += 1;
+            } else {
+                score += Math.min(e.box, steps) / steps;
+            }
+        }
 
         return {
-            due: getDueWords(WORDS, progress).length,
-            fresh: getNewWords(WORDS, progress).length,
-            learning: entries.length - mastered,
+            due: getDueWords(words, progress).length, // مرور: بدون فیلتر سطح
+            fresh: getNewWords(words, progress, level).length,
+            learning: boxed - mastered,
             mastered,
-            boxed: entries.length,
-            overall: WORDS.length ? Math.min(1, score / WORDS.length) : 0,
+            overall: relevant.length ? Math.min(1, score / relevant.length) : 0,
         };
-    }, [progress]);
+    }, [words, progress, level]);
 
     const dateText = useMemo(todayLabel, []);
 
@@ -94,6 +117,23 @@ export default function Home() {
             </View>
         );
     }
+
+    // قبل از خروج، پیشرفت به سرور فرستاده می‌شود
+    const logout = async () => {
+        const ok = await syncNow();
+        if (!ok && pendingCount() > 0) {
+            Alert.alert(
+                'تغییرات ذخیره‌نشده',
+                'اینترنت وصل نیست و بعضی پیشرفت‌ها هنوز به سرور نرفته‌اند. با خروج از بین می‌روند.',
+                [
+                    { text: 'انصراف', style: 'cancel' },
+                    { text: 'خروج', style: 'destructive', onPress: signOut },
+                ]
+            );
+            return;
+        }
+        signOut();
+    };
 
     return (
         <View style={styles.screen}>
@@ -191,6 +231,32 @@ export default function Home() {
                         </View>
                     </View>
 
+                    {/* ---------- سطح من ---------- */}
+                    <View style={styles.levelCard}>
+                        <Text style={styles.levelTitle}>سطح من</Text>
+                        <View style={styles.levels}>
+                            {LEVELS.map((l) => (
+                                <Pressable
+                                    key={l}
+                                    onPress={() => setLevel(l)}
+                                    style={[styles.chip, l === level && styles.chipOn]}
+                                >
+                                    <Text style={[styles.chipText, l === level && styles.chipTextOn]}>
+                                        {levelLabel(l)}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                        <Text style={styles.levelHint}>
+                            کلمه‌های پایین‌تر از سطح پیشنهاد نمی‌شوند، ولی کلمه‌های داخل جعبه همچنان مرور می‌شوند
+                        </Text>
+                    </View>
+
+                    <Pressable onPress={logout} style={styles.logout}>
+                        <Ionicons name="log-out-outline" size={18} color={colors.sub} />
+                        <Text style={styles.logoutText}>خروج از حساب</Text>
+                    </Pressable>
+
                     {__DEV__ && (
                         <View style={styles.dev}>
                             <Text style={styles.devTitle}>ابزار تست (فقط حالت توسعه)</Text>
@@ -287,6 +353,32 @@ const styles = StyleSheet.create({
     stat: { flex: 1, backgroundColor: colors.card, borderRadius: 18, padding: 16, alignItems: 'center', gap: 2 },
     statNum: { fontSize: 24, fontWeight: '800', color: colors.text, marginTop: 4 },
     statLabel: { fontSize: 13, color: colors.sub },
+
+    // --- level ---
+    levelCard: { backgroundColor: colors.card, borderRadius: 20, padding: 16, gap: 10 },
+    levelTitle: { fontSize: 15, fontWeight: '700', color: colors.text, textAlign: 'right' },
+    levels: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+    chip: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderRadius: 14,
+        backgroundColor: colors.bg,
+    },
+    chipOn: { backgroundColor: colors.primary },
+    chipText: { fontSize: 14, fontWeight: '700', color: colors.text },
+    chipTextOn: { color: '#FFFFFF' },
+    levelHint: { fontSize: 12, color: colors.sub, textAlign: 'right' },
+
+    logout: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 10,
+    },
+    logoutText: { fontSize: 14, color: colors.sub },
+
     dev: {
         marginTop: 4,
         padding: 14,

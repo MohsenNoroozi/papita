@@ -26,13 +26,14 @@ select gen_random_uuid(),
 from auth.users
 where email like '%@papita.test';
 
+-- اگر Profile وجود نداشته باشد، ساخته می‌شود.
+-- اگر وجود داشته باشد، اطلاعاتش به‌روزرسانی می‌شود.
 insert into profiles (id, level, settings)
-values ('a0000000-0000-4000-8000-000000000001', 1, '{}'),
-       ('a0000000-0000-4000-8000-000000000002', 1, '{
-         "autoSpeak": true,
-         "deckSize": 10
-       }'),
-       ('a0000000-0000-4000-8000-000000000003', 4, '{
-         "autoSpeak": false,
-         "deckSize": 20
-       }');
+values
+    ('a0000000-0000-4000-8000-000000000001', 1, '{}'),
+    ('a0000000-0000-4000-8000-000000000002', 1, '{"autoSpeak": true, "deckSize": 10}'),
+    ('a0000000-0000-4000-8000-000000000003', 4, '{"autoSpeak": false, "deckSize": 20}')
+on conflict (id)
+    do update set
+                  level = excluded.level,
+                  settings = excluded.settings;
