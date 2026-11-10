@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="use server DB data">
+    <list default="true" id="4aac1b91-27cb-4d21-af2a-0044ea453a49" name="Changes" comment="Link to Learn page directly from Dashboard">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/app/(tabs)/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/mobile/src/context/CatalogContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/src/context/CatalogContext.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -118,7 +116,8 @@
       <workItem from="1794140556782" duration="7926000" />
       <workItem from="1794197710598" duration="9929000" />
       <workItem from="1794208245797" duration="757000" />
-      <workItem from="1794227722481" duration="3742000" />
+      <workItem from="1794227722481" duration="6593000" />
+      <workItem from="1794296549777" duration="2206000" />
     </task>
     <task id="LOCAL-00001" summary="move files to a master folder">
       <option name="closed" value="true" />
@@ -200,7 +199,23 @@
       <option name="project" value="LOCAL" />
       <updated>1794231116832</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Sync button on Dashboard">
+      <option name="closed" value="true" />
+      <created>1794231889936</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1794231889936</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Link to Learn page directly from Dashboard">
+      <option name="closed" value="true" />
+      <created>1794297628180</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1794297628180</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -226,6 +241,8 @@
     <MESSAGE value="Supabase clients" />
     <MESSAGE value="update users seeder" />
     <MESSAGE value="use server DB data" />
-    <option name="LAST_COMMIT_MESSAGE" value="use server DB data" />
+    <MESSAGE value="Sync button on Dashboard" />
+    <MESSAGE value="Link to Learn page directly from Dashboard" />
+    <option name="LAST_COMMIT_MESSAGE" value="Link to Learn page directly from Dashboard" />
   </component>
 </project>

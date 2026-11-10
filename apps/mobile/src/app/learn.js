@@ -1,0 +1,1 @@
+export { default } from './(tabs)/source/[id]/learn';

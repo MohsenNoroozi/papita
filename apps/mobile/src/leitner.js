@@ -101,6 +101,41 @@ export function pickDueDeck(words, progress, size = DECK_SIZE, exclude, now = Da
         .slice(0, size);
 }
 
+// انتخاب دسته یادگیری از بین همه منابع: سطح ← تنوع منبع (round-robin) ← کمتر دیده‌شده ← ترتیب منبع
+export function pickMixedDeck(sources, getWordsOfSource, progress, seen, size = DECK_SIZE, userLevel) {
+    const cands = [];
+    sources.forEach((s, si) => {
+        const rankByDist = {};
+        getWordsOfSource(s.id)
+            .filter((w) => !progress[w.id] && isForLevel(w, userLevel))
+            .map((w) => ({
+                w,
+                si,
+                dist: levelDistance(w, userLevel),
+                n: seen[w.id]?.n ?? 0,
+                pos: w._pos ?? w.id,
+            }))
+            .sort((a, b) => a.dist - b.dist || a.n - b.n || a.pos - b.pos)
+            .forEach((c) => {
+                // رتبه کلمه داخل منبعش در همان سطح
+                c.rank = rankByDist[c.dist] = (rankByDist[c.dist] ?? -1) + 1;
+                cands.push(c);
+            });
+    });
+
+    cands.sort((a, b) => a.dist - b.dist || a.rank - b.rank || a.n - b.n || a.si - b.si);
+
+    const taken = new Set();
+    const out = [];
+    for (const c of cands) {
+        if (out.length >= size) break;
+        if (taken.has(c.w.id)) continue;
+        taken.add(c.w.id);
+        out.push(c.w);
+    }
+    return out;
+}
+
 // کلمات جدیدِ مناسب سطح کاربر که هنوز وارد سیستم نشده‌اند
 export function getNewWords(words, progress, userLevel) {
     return words.filter((w) => !progress[w.id] && isForLevel(w, userLevel));

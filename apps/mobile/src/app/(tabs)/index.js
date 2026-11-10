@@ -43,9 +43,6 @@ const OVERLAP = 104; // مقداری از کارت‌ها که روی بک‌گ�
 const { height } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(300, height * 0.4);
 
-const { words, refresh: refreshCatalog } = useCatalog();
-const [refreshing, setRefreshing] = useState(false);   // قبل از return زودهنگام `if (!ready)`
-
 function greeting() {
     const h = new Date().getHours();
     if (h < 11) return 'صبح بخیر';
@@ -62,22 +59,14 @@ function todayLabel() {
     }
 }
 
-const refreshAll = async () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    const [p, c] = await Promise.all([syncNow(), refreshCatalog()]);
-    setRefreshing(false);
-    if (!p || !c) {
-        Alert.alert('به‌روزرسانی نشد', 'اتصال به سرور برقرار نشد. اینترنت را بررسی کن.');
-    }
-};
-
 export default function Home() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { signOut } = useAuth();
+    const { words, refresh: refreshCatalog } = useCatalog();
     const { level, setLevel } = useSettings();
     const { ready, progress, reset, shiftDays, syncNow, pendingCount } = useProgress();
+    const [refreshing, setRefreshing] = useState(false);
     const printStorage = () => inspectStorage();
 
     // متن نوار وضعیت روی عکس تیره باید روشن باشد
@@ -129,6 +118,16 @@ export default function Home() {
             </View>
         );
     }
+
+    const refreshAll = async () => {
+        if (refreshing) return;
+        setRefreshing(true);
+        const [p, c] = await Promise.all([syncNow(), refreshCatalog()]);
+        setRefreshing(false);
+        if (!p || !c) {
+            Alert.alert('به‌روزرسانی نشد', 'اتصال به سرور برقرار نشد. اینترنت را بررسی کن.');
+        }
+    };
 
     // قبل از خروج، پیشرفت به سرور فرستاده می‌شود
     const logout = async () => {
@@ -225,7 +224,7 @@ export default function Home() {
                         <Button
                             title="شروع"
                             disabled={stats.fresh === 0}
-                            onPress={() => router.navigate('/source')}
+                            onPress={() => router.push('/learn')}
                             style={styles.cardBtn}
                         />
                     </View>
@@ -425,5 +424,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.22)',
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 100000,
     },
 });

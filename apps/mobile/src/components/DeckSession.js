@@ -269,7 +269,7 @@ export default function DeckSession({
         const remaining = pick(Infinity, isReview ? used.current : undefined).length;
 
         return (
-            <SafeAreaView style={styles.screen} edges={['top']}>
+            <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
                 <ScreenHeader title={title} showBack={showBack} />
 
                 <SwipeAway direction="left" enterFrom="left" onDismiss={backToLast} style={styles.flex}>
@@ -353,7 +353,7 @@ export default function DeckSession({
     const ratio = (deck.length - unadded.length) / deck.length;
 
     return (
-        <SafeAreaView style={styles.screen} edges={['top']}>
+        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
             <ScreenHeader
                 title={title}
                 showBack={showBack}
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
         gap: 10,
         paddingHorizontal: 20,
         paddingTop: 8,
-        paddingBottom: 20,
+        paddingBottom: 0,
     },
 
     // آمار
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 10,
         paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 20,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 });
