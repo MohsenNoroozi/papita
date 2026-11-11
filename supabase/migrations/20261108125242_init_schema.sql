@@ -3,99 +3,145 @@
 -- ============================================================
 
 -- تابع به‌روزرسانی updated_at (برای همگام‌سازی delta)
-create function set_updated_at() returns trigger language plpgsql as $$
-begin new.updated_at = now(); return new; end $$;
+create function set_updated_at() returns trigger
+    language plpgsql as
+$$
+begin
+    new.updated_at = now(); return new;
+end
+$$;
+
+create table collections
+(
+    id         bigint primary key generated always as identity,
+    title      text        not null,
+    deleted    boolean     not null default false,
+    updated_at timestamptz not null default now()
+);
 
 -- ------------------------------------------------------------
 -- محتوا (مشترک بین همه کاربران؛ حذف = soft delete با deleted=true)
 -- ------------------------------------------------------------
-create table sources (
-                         id bigint primary key generated always as identity,
-                         title text not null,
-                         collection_id bigint,
-                         position int not null default 0,
-                         deleted boolean not null default false,
-                         updated_at timestamptz not null default now()
+create table sources
+(
+    id            bigint primary key generated always as identity,
+    title         text        not null,
+    collection_id bigint references collections (id),
+    position      int         not null default 0,
+    deleted       boolean     not null default false,
+    updated_at    timestamptz not null default now()
 );
 
-create table words (
-                       id bigint primary key generated always as identity,
-                       en text not null,
-                       sense text,
-                       fa text not null,
-                       level smallint not null default 1 check (level between 1 and 6), -- 1=A1 ... 6=C2
-                       deleted boolean not null default false,
-                       updated_at timestamptz not null default now()
+create table words
+(
+    id         bigint primary key generated always as identity,
+    en         text        not null,
+    sense      text,
+    fa         text        not null,
+    level      smallint    not null default 1 check (level between 1 and 6), -- 1=A1 ... 6=C2
+    deleted    boolean     not null default false,
+    updated_at timestamptz not null default now()
 );
 -- یک کلمه یکتا؛ فقط بین ردیف‌های فعال
 create unique index words_en_sense_uq
     on words (lower(en), coalesce(sense, '')) where not deleted;
 
-create table source_words (
-                              source_id bigint not null references sources(id),
-                              word_id bigint not null references words(id),
-                              position int not null default 0,
-                              example text,
-                              example_fa text,
-                              deleted boolean not null default false,
-                              updated_at timestamptz not null default now(),
-                              primary key (source_id, word_id)
+create table source_words
+(
+    source_id  bigint      not null references sources (id),
+    word_id    bigint      not null references words (id),
+    position   int         not null default 0,
+    example    text,
+    example_fa text,
+    deleted    boolean     not null default false,
+    updated_at timestamptz not null default now(),
+    primary key (source_id, word_id)
 );
 
 -- ایندکس برای کوئری delta (updated_at > since) و جستجوی منبعِ یک کلمه
-create index sources_updated_idx      on sources (updated_at);
-create index words_updated_idx        on words (updated_at);
+create index collections_updated_idx on collections (updated_at);
+create index sources_collection_idx on sources (collection_id);
+create index sources_updated_idx on sources (updated_at);
+create index words_updated_idx on words (updated_at);
 create index source_words_updated_idx on source_words (updated_at);
-create index source_words_word_idx    on source_words (word_id);
+create index source_words_word_idx on source_words (word_id);
 
 -- ------------------------------------------------------------
 -- داده کاربر
 -- ------------------------------------------------------------
-create table profiles (
-                          id uuid primary key references auth.users(id) on delete cascade,
-                          level smallint not null default 1 check (level between 1 and 6),
-                          settings jsonb not null default '{}'
+create table profiles
+(
+    id       uuid primary key references auth.users (id) on delete cascade,
+    level    smallint not null default 1 check (level between 1 and 6),
+    settings jsonb    not null default '{}'
 );
 
-create table user_progress (
-                               user_id uuid not null references auth.users(id) on delete cascade,
-                               word_id bigint not null references words(id),
-                               box smallint,                              -- برای ردیف حذف‌شده null است
-                               due timestamptz,                           -- null = کاملاً یادگرفته
-                               u bigint not null,                         -- زمان آخرین تغییر در کلاینت (ms)، برای last-write-wins
-                               deleted boolean not null default false,    -- کلمه از جعبه‌ها حذف شده
-                               updated_at timestamptz not null default now(),
-                               primary key (user_id, word_id),
-                               constraint box_required check (deleted or box is not null)
+create table user_progress
+(
+    user_id    uuid        not null references auth.users (id) on delete cascade,
+    word_id    bigint      not null references words (id),
+    box        smallint,                           -- برای ردیف حذف‌شده null است
+    due        timestamptz,                        -- null = کاملاً یادگرفته
+    u          bigint      not null,               -- زمان آخرین تغییر در کلاینت (ms)، برای last-write-wins
+    deleted    boolean     not null default false, -- کلمه از جعبه‌ها حذف شده
+    updated_at timestamptz not null default now(),
+    primary key (user_id, word_id),
+    constraint box_required check (deleted or box is not null)
 );
 create index user_progress_sync_idx on user_progress (user_id, updated_at);
 
 -- با ساخته شدن کاربر، پروفایل او هم ساخته شود
 create function handle_new_user() returns trigger
-    language plpgsql security definer set search_path = public as $$
+    language plpgsql
+    security definer set search_path = public as
+$$
 begin
     insert into public.profiles (id) values (new.id) on conflict do nothing;
     return new;
-end $$;
+end
+$$;
 
+create trigger t_collections before update on collections for each row execute function set_updated_at();
 create trigger on_auth_user_created
-    after insert on auth.users
-    for each row execute function handle_new_user();
+    after insert
+    on auth.users
+    for each row
+execute function handle_new_user();
 
 -- کاربرانی که قبل از این migration ساخته شده‌اند (مثلاً ادمین)
-insert into profiles (id) select id from auth.users on conflict do nothing;
+insert into profiles (id)
+select id
+from auth.users
+on conflict do nothing;
 
 -- ------------------------------------------------------------
 -- trigger برای updated_at
 -- ------------------------------------------------------------
-create trigger t_sources before update on sources       for each row execute function set_updated_at();
-create trigger t_words   before update on words         for each row execute function set_updated_at();
-create trigger t_sw      before update on source_words  for each row execute function set_updated_at();
-create trigger t_up      before update on user_progress for each row execute function set_updated_at();
+create trigger t_sources
+    before update
+    on sources
+    for each row
+execute function set_updated_at();
+create trigger t_words
+    before update
+    on words
+    for each row
+execute function set_updated_at();
+create trigger t_sw
+    before update
+    on source_words
+    for each row
+execute function set_updated_at();
+create trigger t_up
+    before update
+    on user_progress
+    for each row
+execute function set_updated_at();
 
 -- ------------------------------------------------------------
 -- امنیت
 -- ------------------------------------------------------------
+alter table collections enable row level security;
 alter table sources enable row level security;
 alter table words enable row level security;
 alter table source_words enable row level security;
@@ -103,23 +149,28 @@ alter table profiles enable row level security;
 alter table user_progress enable row level security;
 
 -- کاربر بدون ورود (anon) هیچ دسترسی مستقیمی به جدول‌ها ندارد
-revoke all on sources, words, source_words, profiles, user_progress from anon;
+revoke all on collections, sources, words, source_words, profiles, user_progress from anon;
 
-create function is_admin() returns boolean language sql stable as $$
+create function is_admin() returns boolean
+    language sql
+    stable as
+$$
 select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
 $$;
 
 -- محتوا: فقط کاربر واردشده بخواند (شامل ردیف‌های deleted تا اپ حذف را بفهمد)؛ فقط ادمین بنویسد
-create policy read_authenticated on sources      for select to authenticated using (true);
-create policy read_authenticated on words        for select to authenticated using (true);
+create policy read_authenticated on collections for select to authenticated using (true);
+create policy read_authenticated on sources for select to authenticated using (true);
+create policy read_authenticated on words for select to authenticated using (true);
 create policy read_authenticated on source_words for select to authenticated using (true);
 
-create policy admin_write on sources      for all to authenticated using (is_admin()) with check (is_admin());
-create policy admin_write on words        for all to authenticated using (is_admin()) with check (is_admin());
+create policy admin_write on collections for all to authenticated using (is_admin()) with check (is_admin());
+create policy admin_write on sources for all to authenticated using (is_admin()) with check (is_admin());
+create policy admin_write on words for all to authenticated using (is_admin()) with check (is_admin());
 create policy admin_write on source_words for all to authenticated using (is_admin()) with check (is_admin());
 
 -- داده کاربر: هر کس فقط مال خودش
-create policy own on profiles      for all to authenticated using (id = auth.uid())      with check (id = auth.uid());
+create policy own on profiles for all to authenticated using (id = auth.uid()) with check (id = auth.uid());
 create policy own on user_progress for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- ------------------------------------------------------------
@@ -128,24 +179,35 @@ create policy own on user_progress for all to authenticated using (user_id = aut
 
 -- تغییرات کاتالوگ از زمان since به بعد
 create function catalog_changes(since timestamptz)
-    returns jsonb language sql stable security invoker as $$
+    returns jsonb
+    language sql
+    stable security invoker as
+$$
 select jsonb_build_object(
+               'collections', coalesce((select jsonb_agg(jsonb_build_object(
+                'id', id, 'title', title,
+                'updatedAt', updated_at,
+                'deletedAt', case when deleted then updated_at end))
+                                        from collections where updated_at > since), '[]'::jsonb),
                'sources', coalesce((select jsonb_agg(jsonb_build_object(
                 'id', id, 'title', title, 'collectionId', collection_id, 'position', position,
                 'updatedAt', updated_at,
                 'deletedAt', case when deleted then updated_at end))
-                                    from sources where updated_at > since), '[]'::jsonb),
+                                    from sources
+                                    where updated_at > since), '[]'::jsonb),
                'words', coalesce((select jsonb_agg(jsonb_build_object(
                 'id', id, 'en', en, 'sense', sense, 'fa', fa, 'level', level,
                 'updatedAt', updated_at,
                 'deletedAt', case when deleted then updated_at end))
-                                  from words where updated_at > since), '[]'::jsonb),
+                                  from words
+                                  where updated_at > since), '[]'::jsonb),
                'sourceWords', coalesce((select jsonb_agg(jsonb_build_object(
                 'sourceId', source_id, 'wordId', word_id, 'position', position,
                 'example', example, 'exampleFa', example_fa,
                 'updatedAt', updated_at,
                 'deletedAt', case when deleted then updated_at end))
-                                        from source_words where updated_at > since), '[]'::jsonb),
+                                        from source_words
+                                        where updated_at > since), '[]'::jsonb),
            -- ۵ ثانیه همپوشانی تا تراکنش‌های دیر commit‌شده از دست نروند (merge در اپ idempotent است)
                'nextSince', now() - interval '5 seconds'
        );
@@ -154,21 +216,25 @@ $$;
 -- ارسال تغییرات پیشرفت کاربر + دریافت تغییرات سرور (last-write-wins با u)
 -- due در اپ بر حسب ms است و اینجا به timestamptz تبدیل می‌شود
 create function sync_progress(changes jsonb, since timestamptz)
-    returns jsonb language plpgsql security invoker as $$
+    returns jsonb
+    language plpgsql
+    security invoker as
+$$
 begin
     insert into user_progress (user_id, word_id, box, due, u, deleted)
     select auth.uid(),
-           (c->>'wordId')::bigint,
-           (c->>'box')::smallint,
-           case when c->>'due' is null then null
-                else to_timestamp((c->>'due')::bigint / 1000.0) end,
-           (c->>'u')::bigint,
-           coalesce((c->>'deleted')::boolean, false)
+           (c ->> 'wordId')::bigint,
+           (c ->> 'box')::smallint,
+           case
+               when c ->> 'due' is null then null
+               else to_timestamp((c ->> 'due')::bigint / 1000.0) end,
+           (c ->> 'u')::bigint,
+           coalesce((c ->> 'deleted')::boolean, false)
     from jsonb_array_elements(changes) c
     on conflict (user_id, word_id) do update
-        set box = excluded.box,
-            due = excluded.due,
-            u = excluded.u,
+        set box     = excluded.box,
+            due     = excluded.due,
+            u       = excluded.u,
             deleted = excluded.deleted
     where excluded.u > user_progress.u;
 
@@ -178,12 +244,14 @@ begin
                     'due', (extract(epoch from due) * 1000)::bigint,
                     'u', u, 'deleted', deleted))
                                  from user_progress
-                                 where user_id = auth.uid() and updated_at > since), '[]'::jsonb),
+                                 where user_id = auth.uid()
+                                   and updated_at > since), '[]'::jsonb),
             'nextSince', now() - interval '5 seconds'
            );
-end $$;
+end
+$$;
 
-revoke all on function catalog_changes(timestamptz)    from public, anon;
+revoke all on function catalog_changes(timestamptz) from public, anon;
 revoke all on function sync_progress(jsonb, timestamptz) from public, anon;
-grant execute on function catalog_changes(timestamptz)    to authenticated;
+grant execute on function catalog_changes(timestamptz) to authenticated;
 grant execute on function sync_progress(jsonb, timestamptz) to authenticated;

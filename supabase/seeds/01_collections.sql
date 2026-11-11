@@ -1,5 +1,4 @@
-insert into sources (id, title, collection_id, position) overriding system value
-values (14, '14 - Action Boy can run!', 1, 1),
-       (15, '15 - Let''s play ball!', 1, 2);
+insert into collections (id, title) overriding system value
+values (1, 'Family and Friends 1');
 
-select setval(pg_get_serial_sequence('sources', 'id'), (select max(id) from sources));
+select setval(pg_get_serial_sequence('collections', 'id'), (select max(id) from collections));
