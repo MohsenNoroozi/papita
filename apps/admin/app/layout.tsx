@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 import { cn } from "@/lib/utils";
 import { iranyekan } from "./fonts";
@@ -28,6 +29,7 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
+        <Toaster position="bottom-left" dir="rtl" />
       </body>
     </html>
   )
