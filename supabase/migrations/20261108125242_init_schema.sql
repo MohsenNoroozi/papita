@@ -36,11 +36,13 @@ create table words
 (
     id         bigint primary key generated always as identity,
     en         text        not null,
-    sense      text,
     fa         text        not null,
-    level      smallint    not null default 1 check (level between 1 and 6), -- 1=A1 ... 6=C2
+    level      smallint    not null default 1 check (level between 1 and 6),
+    sense      text,
     deleted    boolean     not null default false,
-    updated_at timestamptz not null default now()
+    updated_at timestamptz not null default now(),
+    constraint words_en_not_blank check (btrim(en) <> ''),
+    constraint words_fa_not_blank check (btrim(fa) <> '')
 );
 -- یک کلمه یکتا؛ فقط بین ردیف‌های فعال
 create unique index words_en_sense_uq
@@ -312,6 +314,69 @@ begin
     where s.id = o.id and s.collection_id = p_collection_id;
 end $$;
 
+-- ایمپورت دسته‌ای واژه‌ها به یک منبع (اتمیک)
+-- p_rows: [{en, fa, level, sense, example, example_fa}, ...] که قبلاً اعتبارسنجی شده‌اند
+create function import_source_words(p_source_id bigint, p_rows jsonb) returns jsonb
+    language plpgsql security invoker as $$
+declare
+    r          jsonb;
+    v_word_id  bigint;
+    v_sense    text;
+    v_pos      int;
+    v_imported int := 0;
+    v_skipped  int := 0;
+begin
+    if not is_admin() then
+        raise exception 'forbidden' using errcode = '42501';
+    end if;
+
+    if not exists (select 1 from sources where id = p_source_id and not deleted) then
+        raise exception 'source not found' using errcode = 'P0002';
+    end if;
+
+    select coalesce(max(position), 0) into v_pos
+    from source_words where source_id = p_source_id and not deleted;
+
+    for r in select * from jsonb_array_elements(p_rows)
+        loop
+            -- اگر en در این منبع هست (با هر sense)، نادیده بگیر؛ تکرارهای داخل فایل هم همین‌جا رد می‌شوند
+            if exists (select 1
+                       from source_words sw
+                                join words w on w.id = sw.word_id
+                       where sw.source_id = p_source_id
+                         and not sw.deleted and not w.deleted
+                         and lower(w.en) = lower(r ->> 'en')) then
+                v_skipped := v_skipped + 1;
+                continue;
+            end if;
+
+            v_sense := nullif(r ->> 'sense', '');
+
+            select id into v_word_id from words
+            where not deleted
+              and lower(en) = lower(r ->> 'en')
+              and coalesce(sense, '') = coalesce(v_sense, '');
+
+            if v_word_id is null then
+                insert into words (en, sense, fa, level)
+                values (r ->> 'en', v_sense, r ->> 'fa', (r ->> 'level')::smallint)
+                returning id into v_word_id;
+            end if;
+
+            v_pos := v_pos + 1;
+            insert into source_words (source_id, word_id, position, example, example_fa)
+            values (p_source_id, v_word_id, v_pos,
+                    nullif(r ->> 'example', ''), nullif(r ->> 'example_fa', ''))
+            on conflict (source_id, word_id) do update
+                set deleted = false, position = excluded.position,
+                    example = excluded.example, example_fa = excluded.example_fa;
+
+            v_imported := v_imported + 1;
+        end loop;
+
+    return jsonb_build_object('imported', v_imported, 'skipped', v_skipped);
+end $$;
+
 revoke all on function catalog_changes(timestamptz) from public, anon;
 revoke all on function sync_progress(jsonb, timestamptz) from public, anon;
 grant execute on function catalog_changes(timestamptz) to authenticated;
@@ -324,3 +389,6 @@ grant execute on function delete_source(bigint) to authenticated;
 
 revoke all on function reorder_sources(bigint, bigint[]) from public, anon;
 grant execute on function reorder_sources(bigint, bigint[]) to authenticated;
+
+revoke all on function import_source_words(bigint, jsonb) from public, anon;
+grant execute on function import_source_words(bigint, jsonb) to authenticated;

@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CellEditor, LEVELS } from "@/components/sources/cell-editor"
 import { ConfirmDialog } from "@/components/sources/confirm-dialog"
 import { AddWordDialog } from "@/components/sources/add-word-dialog"
+import { ImportWordsDialog } from "@/components/sources/import-words-dialog"
 import { removeWord, updateExample, updateWord } from "@/app/(admin)/sources/[id]/actions"
 import type { SourceWordRow } from "@/lib/data/sources"
 
@@ -243,7 +244,10 @@ export function SourceWordsTable({ sourceId, rows }: { sourceId: number; rows: S
               className="ps-10"
             />
           </div>
-          <AddWordDialog sourceId={sourceId} />
+          <div className="flex items-center gap-2">
+            <ImportWordsDialog sourceId={sourceId} />
+            <AddWordDialog sourceId={sourceId} />
+          </div>
         </div>
 
         <Table className="table-fixed">

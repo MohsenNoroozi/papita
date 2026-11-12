@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { MAX_IMPORT_ROWS, type ImportReport, type ImportRowInput } from "@/lib/import-words"
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -19,6 +20,7 @@ const level = (v: unknown) => {
 function mapError(error: { code?: string }): string {
   if (error.code === "23505") return "این واژه (با همین زمینه) قبلاً ثبت شده است"
   if (error.code === "42501") return "دسترسی لازم را ندارید"
+  if (error.code === "P0002") return "منبع پیدا نشد"
   return GENERIC
 }
 
@@ -171,4 +173,70 @@ export async function removeWord(sourceId: number, wordId: number): Promise<Acti
 
   refresh(sourceId)
   return ok
+}
+
+export type ImportResult = { ok: true; report: ImportReport } | { ok: false; error: string }
+
+const LEVEL_LABELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
+const cell = (v: unknown) => (typeof v === "number" ? String(v) : text(v))
+
+// A1..C2 یا ۱..۶ (با ارقام فارسی هم)
+function parseLevel(v: unknown) {
+  const s = cell(v)
+      .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+      .toUpperCase()
+  const i = LEVEL_LABELS.indexOf(s)
+  return i >= 0 ? i + 1 : level(s)
+}
+
+export async function importWords(sourceId: number, rows: ImportRowInput[]): Promise<ImportResult> {
+  if (!Number.isInteger(sourceId) || !Array.isArray(rows) || rows.length === 0) {
+    return { ok: false, error: "فایل ردیفی برای ایمپورت ندارد" }
+  }
+  if (rows.length > MAX_IMPORT_ROWS) {
+    return { ok: false, error: `حداکثر ${MAX_IMPORT_ROWS} ردیف در هر بار ایمپورت مجاز است` }
+  }
+
+  const valid: Record<string, unknown>[] = []
+  const invalid: ImportReport["invalid"] = []
+
+  for (const r of rows) {
+    const en = cell(r.en)
+    const fa = cell(r.fa)
+    const lvl = parseLevel(r.level)
+    if (!en || !fa) invalid.push({ row: r.row, reason: "واژه انگلیسی یا ترجمه خالی است" })
+    else if (!lvl) invalid.push({ row: r.row, reason: "سطح نامعتبر است" })
+    else {
+      valid.push({
+        en,
+        fa,
+        level: lvl,
+        sense: cell(r.sense),
+        example: cell(r.example),
+        example_fa: cell(r.exampleFa),
+      })
+    }
+  }
+
+  const supabase = await authed()
+  if (!supabase) return { ok: false, error: "لطفاً دوباره وارد شوید" }
+
+  let imported = 0
+  let skipped = 0
+  if (valid.length) {
+    const { data, error } = await supabase.rpc("import_source_words", {
+      p_source_id: sourceId,
+      p_rows: valid,
+    })
+    if (error) return { ok: false, error: mapError(error) }
+    const res = data as { imported: number; skipped: number }
+    imported = res.imported
+    skipped = res.skipped
+    refresh(sourceId)
+  }
+
+  return {
+    ok: true,
+    report: { imported, skipped, invalid: invalid.slice(0, 50), invalidCount: invalid.length },
+  }
 }
