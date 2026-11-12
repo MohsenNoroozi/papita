@@ -60,11 +60,12 @@ type Props = {
   title: string
   fields: EditorField[]
   onSave: (values: Record<string, string>) => Promise<ActionResult>
-  children: ReactNode // محتوای سلول (قابل کلیک)
+  children: ReactNode, // محتوای سلول (قابل کلیک)
+  className?: string
 }
 
 // ویرایش سلول به‌صورت Popover
-export function CellEditor({ title, fields, onSave, children }: Props) {
+export function CellEditor({ title, fields, onSave, children, className }: Props) {
   const [open, setOpen] = useState(false)
   const [values, setValues] = useState<Record<string, string>>({})
   const [pending, startTransition] = useTransition()
@@ -94,7 +95,10 @@ export function CellEditor({ title, fields, onSave, children }: Props) {
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
-        className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-start hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
+          className={cn(
+              "block w-full cursor-pointer rounded-md px-2 py-1.5 text-start hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
+              className
+          )}
         aria-label={`ویرایش ${title}`}
       >
         {children}

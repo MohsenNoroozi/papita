@@ -17,7 +17,7 @@ const level = (v: unknown) => {
 }
 
 function mapError(error: { code?: string }): string {
-  if (error.code === "23505") return "این واژه (با همین sense) قبلاً ثبت شده است"
+  if (error.code === "23505") return "این واژه (با همین زمینه) قبلاً ثبت شده است"
   if (error.code === "42501") return "دسترسی لازم را ندارید"
   return GENERIC
 }

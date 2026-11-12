@@ -58,7 +58,7 @@ export function NewWordRow({ sourceId, onClose }: { sourceId: number; onClose: (
         <LevelPicker value={form.level} onChange={set("level")} className="w-32" />
       </TableCell>
       <TableCell>
-        <Input dir="ltr" placeholder="sense" aria-label="sense" value={form.sense} onChange={(e) => set("sense")(e.target.value)} />
+        <Input dir="ltr" placeholder="زمینه" aria-label="زمینه" value={form.sense} onChange={(e) => set("sense")(e.target.value)} />
       </TableCell>
       <TableCell className="text-muted-foreground">—</TableCell>
       <TableCell>

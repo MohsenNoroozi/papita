@@ -96,7 +96,7 @@ export function AddWordDialog({ sourceId }: { sourceId: number }) {
               <Input id="add-example-fa" value={form.exampleFa} onChange={(e) => set("exampleFa")(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="add-sense">sense</Label>
+              <Label htmlFor="add-sense">زمینه</Label>
               <Input id="add-sense" dir="ltr" value={form.sense} onChange={(e) => set("sense")(e.target.value)} />
             </div>
             <div className="space-y-1.5">

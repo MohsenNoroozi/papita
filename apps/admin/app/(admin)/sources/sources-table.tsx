@@ -85,14 +85,14 @@ function SortableSourceRow({
                     disabled={dragDisabled}
                     aria-label={`جابه‌جایی ${source.title}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="flex size-8 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted disabled:opacity-40"
+                    className="mx-auto flex size-8 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted disabled:opacity-40"
                     {...attributes}
                     {...listeners}
                 >
                     <HugeiconsIcon icon={DragDropVerticalIcon} size={18} aria-hidden="true" />
                 </button>
             </TableCell>
-            <TableCell className="w-20 text-muted-foreground">{nf.format(rank)}</TableCell>
+            <TableCell className="w-20 text-muted-foreground text-center">{nf.format(rank)}</TableCell>
             <TableCell className="font-medium">
                 <Link
                     href={`/sources/${source.id}`}
@@ -102,7 +102,7 @@ function SortableSourceRow({
                     {source.title}
                 </Link>
             </TableCell>
-            <TableCell className="w-36">{nf.format(source.wordCount)}</TableCell>
+            <TableCell className="w-36 text-center">{nf.format(source.wordCount)}</TableCell>
         </TableRow>
     )
 }
@@ -223,15 +223,13 @@ export function SourcesTable({
                     modifiers={[restrictToVerticalAxis]}
                     onDragEnd={handleDragEnd}
                 >
-                    <Table>
+                    <Table className="table-fixed">
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-10">
-                                    <span className="sr-only">جابه‌جایی</span>
-                                </TableHead>
-                                <TableHead className="w-20">ردیف</TableHead>
+                                <TableHead className="w-12 text-center"><span className="sr-only">جابه‌جایی</span></TableHead>
+                                <TableHead className="w-20 text-center">ردیف</TableHead>
                                 <TableHead>عنوان</TableHead>
-                                <TableHead className="w-36">تعداد کلمات</TableHead>
+                                <TableHead className="w-36 text-center">تعداد کلمات</TableHead>
                             </TableRow>
                         </TableHeader>
 

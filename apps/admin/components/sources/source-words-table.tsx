@@ -1,5 +1,6 @@
 "use client"
 
+import { cn } from "@/lib/utils"
 import { useMemo, useState } from "react"
 import {
   flexRender,
@@ -33,6 +34,18 @@ const nf = new Intl.NumberFormat("fa-IR")
 // یکسان‌سازی ی/ک عربی و فارسی برای جستجو
 const norm = (v: unknown) =>
   String(v ?? "").replace(/ي/g, "ی").replace(/ك/g, "ک").toLowerCase()
+
+// عرض ثابت ستون‌ها (بقیه فضای باقی‌مانده را تقسیم می‌کنند)
+const FIXED_WIDTH: Record<string, string> = {
+  index: "w-16",
+  level: "w-16",
+  sense: "w-32",
+  updatedAt: "w-32",
+  actions: "w-16",
+}
+
+// ستون‌هایی که داده‌شان وسط‌چین است
+const CENTERED = new Set(["index", "level", "sense", "updatedAt", "actions"])
 
 const globalFilterFn: FilterFn<SourceWordRow> = (row, _columnId, value) => {
   const q = norm(value).trim()
@@ -137,6 +150,7 @@ export function SourceWordsTable({ sourceId, rows }: { sourceId: number; rows: S
         header: ({ column }) => <SortHeader column={column}>سطح</SortHeader>,
         cell: ({ row: { original: r } }) => (
           <CellEditor
+              className="text-center"
             title="ویرایش سطح"
             fields={[{ name: "level", label: "سطح", value: String(r.level), type: "level" }]}
             onSave={(v) => updateWord(sourceId, r.wordId, { level: v.level })}
@@ -151,8 +165,9 @@ export function SourceWordsTable({ sourceId, rows }: { sourceId: number; rows: S
         header: ({ column }) => <SortHeader column={column}>sense</SortHeader>,
         cell: ({ row: { original: r } }) => (
           <CellEditor
-            title="ویرایش sense"
-            fields={[{ name: "sense", label: "sense", value: r.sense ?? "", dir: "ltr" }]}
+              className="text-center"
+            title="ویرایش زمینه"
+            fields={[{ name: "sense", label: "زمینه", value: r.sense ?? "", dir: "ltr" }]}
             onSave={(v) => updateWord(sourceId, r.wordId, { sense: v.sense })}
           >
             {r.sense ? <span dir="ltr">{r.sense}</span> : <span className="text-muted-foreground">—</span>}
@@ -231,16 +246,16 @@ export function SourceWordsTable({ sourceId, rows }: { sourceId: number; rows: S
           <AddWordDialog sourceId={sourceId} />
         </div>
 
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
-                {hg.headers.map((h) => (
-                  <TableHead key={h.id}>
-                    {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
+                <TableRow key={hg.id}>
+                  {hg.headers.map((h) => (
+                      <TableHead key={h.id} className={cn("text-center", FIXED_WIDTH[h.column.id])}>
+                        {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                      </TableHead>
+                  ))}
+                </TableRow>
             ))}
           </TableHeader>
           <TableBody>
@@ -248,7 +263,9 @@ export function SourceWordsTable({ sourceId, rows }: { sourceId: number; rows: S
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} className="align-top">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      <TableCell key={cell.id} className={cn(CENTERED.has(cell.column.id) && "text-center")}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
                   ))}
                 </TableRow>
               ))
