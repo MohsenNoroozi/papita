@@ -40,7 +40,7 @@ export default async function AdminLayout({children}: { children: ReactNode }) {
                 <AdminHeader user={adminUser}/>
                 <div className="flex-1 px-4 md:px-6">{children}</div>
                 <footer className="px-6 py-3 text-xs text-gray-500 text-left">
-                  <span>© {new Date().getFullYear()} {APP_NAME}</span>
+                  <span>{new Date().getFullYear()} © {APP_NAME}</span>
                 </footer>
             </SidebarInset>
         </SidebarProvider>

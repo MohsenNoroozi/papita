@@ -11,10 +11,12 @@ export function AdminHeader({ user }: { user: AdminUser }) {
     const [scrolled, setScrolled] = useState(false)
 
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 56)
+        // اسکرول اپ روی body است (نه window)، تا اسکرول‌بار طبق direction سمت چپ بیاید
+        const scroller = document.body
+        const onScroll = () => setScrolled(scroller.scrollTop > 56)
         onScroll()
-        window.addEventListener("scroll", onScroll, { passive: true })
-        return () => window.removeEventListener("scroll", onScroll)
+        scroller.addEventListener("scroll", onScroll, { passive: true })
+        return () => scroller.removeEventListener("scroll", onScroll)
     }, [])
 
     return (
