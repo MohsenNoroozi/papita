@@ -298,6 +298,20 @@ begin
     update sources set deleted = true where id = p_id and not deleted;
 end $$;
 
+-- ترتیب منابع یک مجموعه؛ p_ids به ترتیب نمایش
+create function reorder_sources(p_collection_id bigint, p_ids bigint[]) returns void
+    language plpgsql security invoker as $$
+begin
+    if not is_admin() then
+        raise exception 'forbidden' using errcode = '42501';
+    end if;
+
+    update sources s
+    set position = o.ord::int
+    from unnest(p_ids) with ordinality as o(id, ord)
+    where s.id = o.id and s.collection_id = p_collection_id;
+end $$;
+
 revoke all on function catalog_changes(timestamptz) from public, anon;
 revoke all on function sync_progress(jsonb, timestamptz) from public, anon;
 grant execute on function catalog_changes(timestamptz) to authenticated;
@@ -307,3 +321,6 @@ revoke all on function add_source_word(bigint, text, text, smallint, text, text,
 revoke all on function delete_source(bigint) from public, anon;
 grant execute on function add_source_word(bigint, text, text, smallint, text, text, text) to authenticated;
 grant execute on function delete_source(bigint) to authenticated;
+
+revoke all on function reorder_sources(bigint, bigint[]) from public, anon;
+grant execute on function reorder_sources(bigint, bigint[]) to authenticated;

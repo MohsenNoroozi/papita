@@ -54,3 +54,36 @@ export async function createSource(input: {
     revalidatePath("/sources")
     return { ok: true, id: data.id, title: data.title }
 }
+
+export async function reorderSources(
+    collectionId: number,
+    orderedIds: number[]
+): Promise<{ ok: true } | { ok: false; error: string }> {
+    if (
+        !Number.isInteger(collectionId) ||
+        orderedIds.length === 0 ||
+        !orderedIds.every(Number.isInteger)
+    ) {
+        return { ok: false, error: "درخواست نامعتبر است" }
+    }
+
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return { ok: false, error: "ابتدا وارد شوید" }
+
+    const { error } = await supabase.rpc("reorder_sources", {
+        p_collection_id: collectionId,
+        p_ids: orderedIds,
+    })
+    if (error) {
+        return {
+            ok: false,
+            error: error.code === "42501" ? "دسترسی لازم را ندارید" : "ذخیرهٔ ترتیب انجام نشد؛ دوباره تلاش کنید",
+        }
+    }
+
+    revalidatePath("/sources")
+    return { ok: true }
+}

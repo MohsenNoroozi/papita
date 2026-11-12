@@ -30,16 +30,18 @@ export function AddSourceDialog({
                                     open,
                                     onOpenChange,
                                     collections,
+                                    defaultCollectionId: preferredCollectionId,
                                 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     collections: CollectionOption[]
+    defaultCollectionId?: string
 }) {
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
 
     // کالکشن‌ها بر اساس id مرتب‌اند؛ آخرین مورد پیش‌فرض است
-    const defaultCollectionId = String(collections.at(-1)?.id ?? "")
+    const defaultCollectionId = preferredCollectionId || String(collections.at(-1)?.id ?? "")
 
     const [title, setTitle] = useState("")
     const [collectionId, setCollectionId] = useState(defaultCollectionId)
