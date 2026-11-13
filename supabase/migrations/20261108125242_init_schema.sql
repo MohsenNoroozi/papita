@@ -247,9 +247,19 @@ create policy admin_write on source_words for all to authenticated using (is_adm
 create policy own on profiles for all to authenticated using (id = auth.uid()) with check (id = auth.uid());
 create policy own on user_progress for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
--- ادمین همهٔ پروفایل‌ها را ببیند و ویرایش کند (policy «own» برای خود کاربر سر جایش می‌ماند)
+-- ادمین همهٔ پروفایل‌ها و پیشرفت‌ها را ببیند و ویرایش کند (policy «own» برای خود کاربر سر جایش می‌ماند)
+-- sync_progress همچنان با user_id = auth.uid() فیلتر می‌کند، پس این policy روی sync اثری ندارد
 create policy admin_all on profiles for all to authenticated
     using (is_admin()) with check (is_admin());
+create policy admin_all on user_progress for all to authenticated
+    using (is_admin()) with check (is_admin());
+
+-- ------------------------------------------------------------
+-- Storage: آواتار کاربران (عمومی برای خواندن؛ نوشتن فقط با service role از سمت سرور)
+-- ------------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avatars', 'avatars', true, 2097152, array ['image/jpeg'])
+on conflict (id) do nothing;
 
 -- ------------------------------------------------------------
 -- API همگام‌سازی (فقط authenticated؛ RLS هم اعمال می‌شود)
