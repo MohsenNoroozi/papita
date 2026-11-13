@@ -1,4 +1,4 @@
-insert into user_progress (user_id, word_id, box, due, u)
+insert into user_progress (user_id, word_id, box, due, client_updated_ms)
 values
     -- مبتدی: چند کلمه سررسیدشده، چند کلمه در آینده، یکی کاملاً یادگرفته
     ('a0000000-0000-4000-8000-000000000002', 1, 1, date_trunc('day', now()) - interval '1 day', floor(extract(epoch from now()) * 1000)::bigint),

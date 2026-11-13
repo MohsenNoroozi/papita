@@ -38,6 +38,8 @@ export default async function SourceLayout({
     if (!source) notFound()
 
     const nf = new Intl.NumberFormat("fa-IR")
+    // آخرین آیتم breadcrumb: نام منبع؛ اگر نام نداشت، شناسه
+    const breadcrumbLabel = source.title?.trim() || `شناسه: ${nf.format(source.id)}`
 
     return (
         <div className="space-y-4">
@@ -54,7 +56,7 @@ export default async function SourceLayout({
                         </BreadcrumbItem>
                         <BreadcrumbSeparator className="rtl:rotate-180" />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>شناسه: {nf.format(source.id)}</BreadcrumbPage>
+                            <BreadcrumbPage>{breadcrumbLabel}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
