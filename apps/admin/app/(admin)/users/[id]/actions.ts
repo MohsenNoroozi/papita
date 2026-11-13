@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getAvailableWords, type AvailableWord } from "@/lib/data/users"
 import { dueForBox, LEARNED_BOX, MIN_BOX } from "@/lib/leitner"
 import { isUuid } from "@/lib/uuid"
-import {SupabaseClient, User} from "@supabase/supabase-js";
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -24,23 +24,27 @@ const PHONE_RE = /^\+?\d{7,15}$/
 const AVATAR_BUCKET = "avatars"
 const AVATAR_MAX_BYTES = 1_000_000
 
+const MAX_IDS = 5000 // سقف واژه در هر عملیات گروهی
+const SELECT_CHUNK = 200 // طول لیست in(...) در کوئری (برای محدودیت طول URL)
+const UPSERT_CHUNK = 500
+
+type Supabase = Awaited<ReturnType<typeof createClient>>
+
+function chunk<T>(items: T[], size: number): T[][] {
+    return Array.from({ length: Math.ceil(items.length / size) }, (_, i) =>
+        items.slice(i * size, (i + 1) * size)
+    )
+}
+
 // فقط ادمینِ واردشده
-// type AdminAuthResult = | { ok: true; supabase: SupabaseClient; user: User } | { ok: false; error: string }
-async function requireAdmin(): Promise<{ ok: true; supabase: SupabaseClient; user: User } | { ok: false; error: string }> {
+async function requireAdmin() {
     const supabase = await createClient()
     const {
         data: { user },
     } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { ok: false, error: "لطفاً دوباره وارد شوید" }
-    }
-
-    if (user.app_metadata?.role !== "admin") {
-        return { ok: false, error: "دسترسی لازم را ندارید" }
-    }
-
-    return { ok: true, supabase, user }
+    if (!user) return { error: "لطفاً دوباره وارد شوید" } as const
+    if (user.app_metadata?.role !== "admin") return { error: "دسترسی لازم را ندارید" } as const
+    return { supabase, user } as const
 }
 
 // مسیر فایل داخل bucket از روی آدرس عمومی (اگر آدرس خارجی باشد null)
@@ -245,8 +249,49 @@ export async function removeAvatar(id: string): Promise<ActionResult> {
 // ------------------------------------------------------------
 // پیشرفت (جعبه‌های Leitner)
 // ------------------------------------------------------------
-// delta = +1 پیشرفت بیشتر، -1 پیشرفت کمتر. due و client_updated_ms هم بازمحاسبه می‌شوند
-// تا تغییر ادمین در همگام‌سازی اپ (last-write-wins) برنده شود.
+
+// ثبت جعبهٔ جدید برای چند واژه با یک upsert (هم ردیف موجود را به‌روز می‌کند،
+// هم واژه‌ای را که در پیشرفت نیست اضافه می‌کند، هم ردیف soft-delete شده را زنده می‌کند).
+// due و client_updated_ms هم بازمحاسبه می‌شوند تا تغییر ادمین در sync اپ (last-write-wins) برنده شود.
+async function upsertBoxes(
+    supabase: Supabase,
+    userId: string,
+    updates: { wordId: number; box: number }[]
+): Promise<ActionResult> {
+    const now = Date.now()
+    const dues = new Map<number, string | null>()
+    const dueOf = (box: number) => {
+        if (!dues.has(box)) dues.set(box, dueForBox(box)?.toISOString() ?? null)
+        return dues.get(box) ?? null
+    }
+
+    const rows = updates.map((u) => ({
+        user_id: userId,
+        word_id: u.wordId,
+        box: u.box,
+        due: dueOf(u.box),
+        client_updated_ms: now,
+        deleted: false,
+    }))
+
+    for (const part of chunk(rows, UPSERT_CHUNK)) {
+        const { error } = await supabase.from("user_progress").upsert(part, { onConflict: "user_id,word_id" })
+        if (error) {
+            if (error.code === "42501") return fail("دسترسی لازم را ندارید")
+            if (error.code === "23503") return fail("واژهٔ نامعتبری در انتخاب وجود دارد")
+            return fail(GENERIC)
+        }
+    }
+    return ok
+}
+
+function cleanIds(v: unknown): number[] | null {
+    if (!Array.isArray(v) || v.length === 0 || v.length > MAX_IDS) return null
+    const ids = Array.from(new Set(v as unknown[]))
+    return ids.every((n): n is number => typeof n === "number" && Number.isInteger(n) && n > 0) ? ids : null
+}
+
+// delta = +1 پیشرفت بیشتر، -1 پیشرفت کمتر (برای یک واژه)
 export async function changeProgressBox(
     userId: string,
     wordId: number,
@@ -271,21 +316,68 @@ export async function changeProgressBox(
     const box = Math.min(LEARNED_BOX, Math.max(MIN_BOX, current.box + delta))
     if (box === current.box) return ok
 
-    const { data, error } = await supabase
-        .from("user_progress")
-        .update({
-            box,
-            due: dueForBox(box)?.toISOString() ?? null,
-            client_updated_ms: Date.now(),
-        })
-        .eq("user_id", userId)
-        .eq("word_id", wordId)
-        .select("word_id")
-    if (error) return fail(GENERIC)
-    if (!data?.length) return fail("دسترسی لازم را ندارید")
+    const res = await upsertBoxes(supabase, userId, [{ wordId, box }])
+    if (res.ok) revalidatePath(`/users/${userId}/progress`)
+    return res
+}
 
-    revalidatePath(`/users/${userId}/progress`)
-    return ok
+// یک جعبه جلو/عقب برای چند واژه؛ هر واژه از جعبهٔ فعلی خودش حساب می‌شود
+export async function shiftProgressBoxes(
+    userId: string,
+    wordIds: number[],
+    delta: 1 | -1
+): Promise<ActionResult> {
+    const ids = cleanIds(wordIds)
+    if (!isUuid(userId) || !ids || (delta !== 1 && delta !== -1)) return fail("درخواست نامعتبر است")
+
+    const auth = await requireAdmin()
+    if ("error" in auth) return fail(auth.error)
+    const { supabase } = auth
+
+    const current = new Map<number, number>()
+    for (const part of chunk(ids, SELECT_CHUNK)) {
+        const { data, error } = await supabase
+            .from("user_progress")
+            .select("word_id, box")
+            .eq("user_id", userId)
+            .eq("deleted", false)
+            .in("word_id", part)
+        if (error) return fail(GENERIC)
+        for (const r of data ?? []) if (r.box != null) current.set(r.word_id, r.box)
+    }
+
+    const updates: { wordId: number; box: number }[] = []
+    current.forEach((box, wordId) => {
+        const next = Math.min(LEARNED_BOX, Math.max(MIN_BOX, box + delta))
+        if (next !== box) updates.push({ wordId, box: next })
+    })
+    if (!updates.length) return ok
+
+    const res = await upsertBoxes(supabase, userId, updates)
+    if (res.ok) revalidatePath(`/users/${userId}/progress`)
+    return res
+}
+
+// انتقال چند واژه به یک جعبهٔ مشخص؛ برای واژه‌های خارج از پیشرفت = افزودن به آن جعبه
+export async function setProgressBoxes(
+    userId: string,
+    wordIds: number[],
+    box: number
+): Promise<ActionResult> {
+    const ids = cleanIds(wordIds)
+    if (!isUuid(userId) || !ids) return fail("درخواست نامعتبر است")
+    if (!Number.isInteger(box) || box < MIN_BOX || box > LEARNED_BOX) return fail("جعبه نامعتبر است")
+
+    const auth = await requireAdmin()
+    if ("error" in auth) return fail(auth.error)
+
+    const res = await upsertBoxes(
+        auth.supabase,
+        userId,
+        ids.map((wordId) => ({ wordId, box }))
+    )
+    if (res.ok) revalidatePath(`/users/${userId}/progress`)
+    return res
 }
 
 // حذف واژه از پیشرفت (soft delete؛ مطابق قرارداد sync: box = null)
@@ -306,4 +398,20 @@ export async function removeProgress(userId: string, wordId: number): Promise<Ac
 
     revalidatePath(`/users/${userId}/progress`)
     return ok
+}
+
+// لیست واژه‌هایی که در هیچ جعبهٔ این کاربر نیستند (با باز شدن دیالوگ افزودن لود می‌شود)
+export async function loadAvailableWords(
+    userId: string
+): Promise<{ ok: true; words: AvailableWord[] } | { ok: false; error: string }> {
+    if (!isUuid(userId)) return { ok: false, error: "کاربر نامعتبر است" }
+
+    const auth = await requireAdmin()
+    if ("error" in auth) return { ok: false, error: auth.error }
+
+    try {
+        return { ok: true, words: await getAvailableWords(userId) }
+    } catch {
+        return { ok: false, error: GENERIC }
+    }
 }

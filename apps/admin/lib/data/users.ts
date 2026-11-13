@@ -59,6 +59,28 @@ export const getUser = cache(async (id: string): Promise<UserRow | null> => {
 })
 
 // ------------------------------------------------------------
+// خواندن صفحه‌به‌صفحه
+// Supabase به‌صورت پیش‌فرض حداکثر ۱۰۰۰ ردیف در هر درخواست برمی‌گرداند
+// ------------------------------------------------------------
+const PAGE = 1000
+
+async function fetchAllPages(
+    fetchPage: (
+        from: number,
+        to: number
+    ) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>
+): Promise<unknown[]> {
+    const all: unknown[] = []
+    for (let from = 0; ; from += PAGE) {
+        const { data, error } = await fetchPage(from, from + PAGE - 1)
+        if (error) throw new Error(error.message)
+        all.push(...(data ?? []))
+        if (!data || data.length < PAGE) break
+    }
+    return all
+}
+
+// ------------------------------------------------------------
 // پیشرفت کاربر (فقط ردیف‌های حذف‌نشده)
 // ------------------------------------------------------------
 export type UserProgressRow = {
@@ -84,17 +106,19 @@ type ProgressRecord = {
 
 export async function getUserProgress(userId: string): Promise<UserProgressRow[]> {
     const supabase = await createClient()
-    const { data, error } = await supabase
-        .from("user_progress")
-        .select("word_id, box, due, updated_at, words(en, fa, sense, level)")
-        .eq("user_id", userId)
-        .eq("deleted", false)
-        .order("word_id")
-    if (error) throw new Error(error.message)
+    const data = (await fetchAllPages((from, to) =>
+        supabase
+            .from("user_progress")
+            .select("word_id, box, due, updated_at, words(en, fa, sense, level)")
+            .eq("user_id", userId)
+            .eq("deleted", false)
+            .order("word_id")
+            .range(from, to)
+    )) as ProgressRecord[]
 
     const now = Date.now()
     const rows: UserProgressRow[] = []
-    for (const r of data as unknown as ProgressRecord[]) {
+    for (const r of data) {
         const word = Array.isArray(r.words) ? r.words[0] : r.words
         if (!word || r.box == null) continue
         rows.push({
@@ -110,4 +134,44 @@ export async function getUserProgress(userId: string): Promise<UserProgressRow[]
         })
     }
     return rows
+}
+
+// ------------------------------------------------------------
+// واژه‌هایی که در هیچ جعبه‌ی این کاربر نیستند (برای افزودن به پیشرفت)
+// ------------------------------------------------------------
+export type AvailableWord = {
+    id: number
+    en: string
+    fa: string
+    sense: string | null
+    level: number
+}
+
+export async function getAvailableWords(userId: string): Promise<AvailableWord[]> {
+    const supabase = await createClient()
+
+    const [words, progress] = await Promise.all([
+        fetchAllPages((from, to) =>
+            supabase
+                .from("words")
+                .select("id, en, fa, sense, level")
+                .eq("deleted", false)
+                .order("id")
+                .range(from, to)
+        ) as Promise<AvailableWord[]>,
+        fetchAllPages((from, to) =>
+            supabase
+                .from("user_progress")
+                .select("word_id")
+                .eq("user_id", userId)
+                .eq("deleted", false)
+                .order("word_id")
+                .range(from, to)
+        ) as Promise<{ word_id: number }[]>,
+    ])
+
+    const inBoxes = new Set(progress.map((r) => r.word_id))
+    return words
+        .filter((w) => !inBoxes.has(w.id))
+        .sort((a, b) => a.en.localeCompare(b.en, "en", { sensitivity: "base" }))
 }
