@@ -316,7 +316,8 @@ begin
            case
                when c ->> 'due' is null then null
                else to_timestamp((c ->> 'due')::bigint / 1000.0) end,
-           (c ->> 'clientUpdatedMs')::bigint,
+           -- سازگاری: 'u' نام قدیمی کلید است؛ بعد از به‌روزرسانی اپ حذفش کنید
+           coalesce(c ->> 'clientUpdatedMs', c ->> 'u')::bigint,
            coalesce((c ->> 'deleted')::boolean, false)
     from jsonb_array_elements(changes) c
     on conflict (user_id, word_id) do update
@@ -330,7 +331,10 @@ begin
             'changes', coalesce((select jsonb_agg(jsonb_build_object(
                     'wordId', word_id, 'box', box,
                     'due', (extract(epoch from due) * 1000)::bigint,
-                    'clientUpdatedMs', client_updated_ms, 'deleted', deleted))
+                    'clientUpdatedMs', client_updated_ms,
+                -- سازگاری: کلید قدیمی برای اپ‌هایی که هنوز 'u' می‌خوانند؛ بعد از به‌روزرسانی اپ حذفش کنید
+                    'u', client_updated_ms,
+                    'deleted', deleted))
                                  from user_progress
                                  where user_id = auth.uid()
                                    and updated_at > since), '[]'::jsonb),
