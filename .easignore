@@ -17,9 +17,9 @@ node_modules/
 **/.claude/
 
 # Environment variables
-.env
-.env.*
-!.env.example
+# .env
+# .env.*
+# !.env.example
 
 # AI tools
 .claude/

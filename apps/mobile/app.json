@@ -18,7 +18,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.VocabApp"
+      "package": "com.anonymous.VocabApp",
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "server",
@@ -34,7 +35,15 @@
           "imageWidth": 76
         }
       ],
-      "expo-image"
+      "expo-image",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

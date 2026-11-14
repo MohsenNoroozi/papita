@@ -16,8 +16,7 @@ export default function LoginScreen() {
         setBusy(true);
         setError('');
         const err = await signIn(email.trim(), password);
-        console.log('err', err)
-        if (err) setError('ایمیل یا رمز عبور اشتباه است');
+        if (err) setError(`ورود ناموفق: ${err.message}`);
         setBusy(false);
     };
 
