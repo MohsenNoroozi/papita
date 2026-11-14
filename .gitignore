@@ -10,6 +10,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+eas-archive/
 
 # Native
 .kotlin/
@@ -44,4 +45,3 @@ example
 # generated native folders
 /ios
 /android
-/.idea/

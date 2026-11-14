@@ -1,0 +1,41 @@
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Expo
+.expo/
+**/.expo/
+
+# Git
+.git/
+
+# IDE and AI tools
+.idea/
+**/.idea/
+.claude/
+**/.claude/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# AI tools
+.claude/
+
+# Documentation
+README.md
+AGENTS.md
+LICENSE
+
+# Build artifacts and caches
+dist/
+coverage/
+.turbo/
+
+# Admin application
+/apps/admin/
+
+# Include mobile environment variables for preview build
+!/apps/mobile/.env
