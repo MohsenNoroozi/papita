@@ -35,7 +35,7 @@ export default function TabsLayout() {
                 },
             }}
         >
-            <Tabs.Screen name="index" options={{ title: 'امروز', tabBarIcon: icon('today-outline', 'today') }} />
+            <Tabs.Screen name="index" options={{ title: 'خانه', tabBarIcon: icon('home-outline', 'home') }} />
             <Tabs.Screen name="source" options={{ title: 'منابع', tabBarIcon: icon('library-outline', 'library') }} />
             <Tabs.Screen name="review" options={{ title: 'مرور', tabBarIcon: icon('repeat-outline', 'repeat') }} />
         </Tabs>

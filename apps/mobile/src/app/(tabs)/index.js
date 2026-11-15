@@ -15,23 +15,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth } from '../../context/AuthContext';
 import { useCatalog } from '../../context/CatalogContext';
 import { useProgress } from '../../context/ProgressContext';
 import { useSettings } from '../../context/SettingsContext';
+import { useProfile } from '../../context/ProfileContext';
+import AvatarMenu from '../../components/AvatarMenu';
 import {
     getDueWords,
     getNewWords,
     isRelevant,
     MASTERED,
     INTERVALS_DAYS,
-    LEVELS,
-    levelLabel,
 } from '../../leitner';
 import { colors } from '../../theme';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import { inspectStorage } from '../../storage';
+
 
 // عکس پس‌زمینه (Unsplash، گرادیان آبی تیره به بنفش، رایگان)
 // برای پایداری بیشتر می‌توانید آن را دانلود و در assets بگذارید و با require() جایگزین کنید
@@ -62,10 +62,10 @@ function todayLabel() {
 export default function Home() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { signOut } = useAuth();
     const { words, refresh: refreshCatalog } = useCatalog();
-    const { level, setLevel } = useSettings();
-    const { ready, progress, reset, shiftDays, syncNow, pendingCount } = useProgress();
+    const { level } = useSettings();
+    const { profile } = useProfile();
+    const { ready, progress, reset, shiftDays, syncNow } = useProgress();
     const [refreshing, setRefreshing] = useState(false);
     const printStorage = () => inspectStorage();
 
@@ -129,23 +129,6 @@ export default function Home() {
         }
     };
 
-    // قبل از خروج، پیشرفت به سرور فرستاده می‌شود
-    const logout = async () => {
-        const ok = await syncNow();
-        if (!ok && pendingCount() > 0) {
-            Alert.alert(
-                'تغییرات ذخیره‌نشده',
-                'اینترنت وصل نیست و بعضی پیشرفت‌ها هنوز به سرور نرفته‌اند. با خروج از بین می‌روند.',
-                [
-                    { text: 'انصراف', style: 'cancel' },
-                    { text: 'خروج', style: 'destructive', onPress: signOut },
-                ]
-            );
-            return;
-        }
-        signOut();
-    };
-
     return (
         <View style={styles.screen}>
             <ScrollView
@@ -157,7 +140,7 @@ export default function Home() {
                     <ImageBackground
                         source={HERO_IMAGE}
                         resizeMode="cover"
-                        style={[styles.hero, { paddingTop: insets.top + 18 }]}
+                        style={[styles.hero, { paddingTop: insets.top + 64 }]}
                     >
                         <View style={styles.tint} pointerEvents="none" />
                         {/* دایره‌های تزئینی */}
@@ -165,19 +148,18 @@ export default function Home() {
                         <View style={[styles.bubble, styles.bubbleB]} pointerEvents="none" />
                         <View style={[styles.bubble, styles.bubbleC]} pointerEvents="none" />
 
-                        <Pressable
-                            onPress={refreshAll}
-                            disabled={refreshing}
-                            hitSlop={10}
-                            accessibilityLabel="به‌روزرسانی از سرور"
-                            style={[styles.refreshBtn, { top: insets.top + 12 }]}
-                        >
-                            {refreshing ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Ionicons name="refresh" size={22} color="#fff" />
-                            )}
-                        </Pressable>
+                        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+                            <Pressable
+                                onPress={refreshAll}
+                                disabled={refreshing}
+                                hitSlop={10}
+                                accessibilityLabel="به‌روزرسانی از سرور"
+                                style={styles.refreshBtn}
+                            >
+                                {refreshing ? <ActivityIndicator color="#fff" /> : <Ionicons name="refresh" size={22} color="#fff" />}
+                            </Pressable>
+                            <AvatarMenu uri={profile?.avatar_url} />
+                        </View>
 
                         <Text style={styles.hello}>{greeting()} 👋</Text>
                         <Text style={styles.title}>امروز</Text>
@@ -255,32 +237,6 @@ export default function Home() {
                             <Text style={styles.statLabel}>کاملاً یادگرفته</Text>
                         </View>
                     </View>
-
-                    {/* ---------- سطح من ---------- */}
-                    <View style={styles.levelCard}>
-                        <Text style={styles.levelTitle}>سطح من</Text>
-                        <View style={styles.levels}>
-                            {LEVELS.map((l) => (
-                                <Pressable
-                                    key={l}
-                                    onPress={() => setLevel(l)}
-                                    style={[styles.chip, l === level && styles.chipOn]}
-                                >
-                                    <Text style={[styles.chipText, l === level && styles.chipTextOn]}>
-                                        {levelLabel(l)}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                        <Text style={styles.levelHint}>
-                            کلمه‌های پایین‌تر از سطح پیشنهاد نمی‌شوند، ولی کلمه‌های داخل جعبه همچنان مرور می‌شوند
-                        </Text>
-                    </View>
-
-                    <Pressable onPress={logout} style={styles.logout}>
-                        <Ionicons name="log-out-outline" size={18} color={colors.sub} />
-                        <Text style={styles.logoutText}>خروج از حساب</Text>
-                    </Pressable>
 
                     {__DEV__ && (
                         <View style={styles.dev}>
@@ -379,31 +335,6 @@ const styles = StyleSheet.create({
     statNum: { fontSize: 24, fontWeight: '800', color: colors.text, marginTop: 4 },
     statLabel: { fontSize: 13, color: colors.sub },
 
-    // --- level ---
-    levelCard: { backgroundColor: colors.card, borderRadius: 20, padding: 16, gap: 10 },
-    levelTitle: { fontSize: 15, fontWeight: '700', color: colors.text, textAlign: 'right' },
-    levels: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
-    chip: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 10,
-        borderRadius: 14,
-        backgroundColor: colors.bg,
-    },
-    chipOn: { backgroundColor: colors.primary },
-    chipText: { fontSize: 14, fontWeight: '700', color: colors.text },
-    chipTextOn: { color: '#FFFFFF' },
-    levelHint: { fontSize: 12, color: colors.sub, textAlign: 'right' },
-
-    logout: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 10,
-    },
-    logoutText: { fontSize: 14, color: colors.sub },
-
     dev: {
         marginTop: 4,
         padding: 14,
@@ -415,15 +346,23 @@ const styles = StyleSheet.create({
     },
     devTitle: { fontSize: 12, color: colors.sub },
     devLink: { fontSize: 15, color: colors.primary },
-    refreshBtn: {
+    header: {
         position: 'absolute',
-        left: 20,
+        top: 0,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        zIndex: 100000,
+    },
+    refreshBtn: {
         width: 40,
         height: 40,
         borderRadius: 20,
         backgroundColor: 'rgba(255,255,255,0.22)',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 100000,
     },
 });
