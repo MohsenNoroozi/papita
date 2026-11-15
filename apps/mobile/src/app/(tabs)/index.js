@@ -19,7 +19,6 @@ import { useCatalog } from '../../context/CatalogContext';
 import { useProgress } from '../../context/ProgressContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useProfile } from '../../context/ProfileContext';
-import AvatarMenu from '../../components/AvatarMenu';
 import {
     getDueWords,
     getNewWords,
@@ -31,6 +30,7 @@ import { colors } from '../../theme';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import { inspectStorage } from '../../storage';
+import Avatar from "../../components/Avatar";
 
 
 // عکس پس‌زمینه (Unsplash، گرادیان آبی تیره به بنفش، رایگان)
@@ -159,7 +159,9 @@ export default function Home() {
                             >
                                 {refreshing ? <ActivityIndicator color="#fff" /> : <Ionicons name="refresh" size={22} color="#fff" />}
                             </Pressable>
-                            <AvatarMenu uri={profile?.avatar_url} />
+                            <Pressable onPress={() => router.push('/profile')} hitSlop={8}>
+                                <Avatar uri={profile?.avatar_url} size={40} style={styles.ring} />
+                            </Pressable>
                         </View>
 
                         <Text style={styles.hello}>{greeting()} 👋</Text>
@@ -272,6 +274,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 36,
         overflow: 'hidden',
     },
+    ring: { borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)' },
     hero: { flex: 1, paddingHorizontal: 24, paddingBottom: OVERLAP + 16 },
     tint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(24, 14, 70, 0.30)' },
     bubble: { position: 'absolute', backgroundColor: 'rgba(255,255,255,0.10)' },
