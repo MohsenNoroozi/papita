@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAvailableWords, type AvailableWord } from "@/lib/data/users"
 import { dueForBox, LEARNED_BOX, MIN_BOX } from "@/lib/leitner"
+import { AVATAR_BUCKET, avatarPath } from "@/lib/avatar"
 import { isUuid } from "@/lib/uuid"
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
@@ -21,7 +22,6 @@ const toLatinDigits = (s: string) =>
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^\+?\d{7,15}$/
-const AVATAR_BUCKET = "avatars"
 const AVATAR_MAX_BYTES = 1_000_000
 
 const MAX_IDS = 5000 // سقف واژه در هر عملیات گروهی
@@ -49,15 +49,6 @@ async function requireAdmin() {
     if (!user) return { error: "لطفاً دوباره وارد شوید" } as const
     if (user.app_metadata?.role !== "admin") return { error: "دسترسی لازم را ندارید" } as const
     return { supabase, user } as const
-}
-
-// مسیر فایل داخل bucket از روی آدرس عمومی (اگر آدرس خارجی باشد null)
-function avatarPath(url: string | null): string | null {
-    if (!url) return null
-    const marker = `/storage/v1/object/public/${AVATAR_BUCKET}/`
-    const i = url.indexOf(marker)
-    if (i === -1) return null
-    return decodeURIComponent(url.slice(i + marker.length).split("?")[0])
 }
 
 // تغییر در کاربر هم کارت عنوان (layout) و هم لیست را تازه می‌کند
@@ -172,7 +163,7 @@ export async function deleteUser(id: string): Promise<ActionResult> {
     if (error) return fail(GENERIC)
 
     const path = avatarPath(profile?.avatar_url ?? null)
-    if (path) await admin.storage.from(AVATAR_BUCKET).remove([path])
+    if (path && path.startsWith(`${id}/`)) await admin.storage.from(AVATAR_BUCKET).remove([path])
 
     revalidatePath("/users")
     return ok
@@ -207,10 +198,10 @@ export async function uploadAvatar(id: string, formData: FormData): Promise<Acti
         })
     if (uploadError) return fail(GENERIC)
 
-    const url = admin.storage.from(AVATAR_BUCKET).getPublicUrl(path).data.publicUrl
+    // فقط مسیر ذخیره می‌شود (هم‌راستا با اپ موبایل)
     const { data, error } = await supabase
         .from("profiles")
-        .update({ avatar_url: url })
+        .update({ avatar_url: path })
         .eq("id", id)
         .select("id")
     if (error || !data?.length) {
@@ -219,7 +210,9 @@ export async function uploadAvatar(id: string, formData: FormData): Promise<Acti
     }
 
     const oldPath = avatarPath(current.avatar_url)
-    if (oldPath) await admin.storage.from(AVATAR_BUCKET).remove([oldPath])
+    if (oldPath && oldPath !== path && oldPath.startsWith(`${id}/`)) {
+        await admin.storage.from(AVATAR_BUCKET).remove([oldPath])
+    }
 
     refresh(id)
     return ok
@@ -244,7 +237,9 @@ export async function removeAvatar(id: string): Promise<ActionResult> {
     if (!data?.length) return fail("دسترسی لازم را ندارید")
 
     const path = avatarPath(current.avatar_url)
-    if (path) await createAdminClient().storage.from(AVATAR_BUCKET).remove([path])
+    if (path && path.startsWith(`${id}/`)) {
+        await createAdminClient().storage.from(AVATAR_BUCKET).remove([path])
+    }
 
     refresh(id)
     return ok
