@@ -63,6 +63,7 @@ export default function Home() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { words, refresh: refreshCatalog } = useCatalog();
+    const { refresh: refreshProfile } = useProfile();
     const { level } = useSettings();
     const { profile } = useProfile();
     const { ready, progress, reset, shiftDays, syncNow } = useProgress();
@@ -122,9 +123,9 @@ export default function Home() {
     const refreshAll = async () => {
         if (refreshing) return;
         setRefreshing(true);
-        const [p, c] = await Promise.all([syncNow(), refreshCatalog()]);
+        const [p, c, u] = await Promise.all([syncNow(), refreshCatalog(), refreshProfile()]);
         setRefreshing(false);
-        if (!p || !c) {
+        if (!p || !c || !u) {
             Alert.alert('به‌روزرسانی نشد', 'اتصال به سرور برقرار نشد. اینترنت را بررسی کن.');
         }
     };

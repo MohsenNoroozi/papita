@@ -15,6 +15,7 @@ const ALL_KEYS = [
     'catalog_v1',
     'outbox_v1',
     'progress_since_v1',
+    'profile_v1',
 ];
 
 export async function wipeLocal() {
