@@ -28,6 +28,10 @@ const MAX_IDS = 5000 // سقف واژه در هر عملیات گروهی
 const SELECT_CHUNK = 200 // طول لیست in(...) در کوئری (برای محدودیت طول URL)
 const UPSERT_CHUNK = 500
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const TEHRAN_OFFSET = "+03:30" // ایران ساعت تابستانی ندارد
+export type DueResult = { ok: true; updated: number } | { ok: false; error: string }
+
 type Supabase = Awaited<ReturnType<typeof createClient>>
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -378,6 +382,50 @@ export async function setProgressBoxes(
     )
     if (res.ok) revalidatePath(`/users/${userId}/progress`)
     return res
+}
+
+// تغییر تاریخ سررسید چند واژه. date به‌صورت YYYY-MM-DD و به وقت تهران است.
+// واژه‌های «یادگرفته‌شده» due ندارند (null = کاملاً یادگرفته)، پس نادیده گرفته می‌شوند.
+export async function setProgressDue(
+    userId: string,
+    wordIds: number[],
+    date: string
+): Promise<DueResult> {
+    const invalid = { ok: false, error: "درخواست نامعتبر است" } as const
+    const ids = cleanIds(wordIds)
+    if (!isUuid(userId) || !ids || typeof date !== "string" || !DATE_RE.test(date)) return invalid
+
+    const [y, m, d] = date.split("-").map(Number)
+    const check = new Date(Date.UTC(y, m - 1, d))
+    // رد تاریخ‌های ناموجود مثل 2026-02-30
+    if (check.getUTCMonth() !== m - 1 || y < 2000 || y > 2100) {
+        return { ok: false, error: "تاریخ نامعتبر است" }
+    }
+    const due = new Date(`${date}T00:00:00${TEHRAN_OFFSET}`).toISOString()
+
+    const auth = await requireAdmin()
+    if ("error" in auth) return { ok: false, error: auth.error }
+
+    // client_updated_ms هم به‌روز می‌شود تا تغییر ادمین در sync اپ (last-write-wins) برنده شود
+    const now = Date.now()
+    let updated = 0
+    for (const part of chunk(ids, SELECT_CHUNK)) {
+        const { data, error } = await auth.supabase
+            .from("user_progress")
+            .update({ due, client_updated_ms: now })
+            .eq("user_id", userId)
+            .eq("deleted", false)
+            .lt("box", LEARNED_BOX)
+            .in("word_id", part)
+            .select("word_id")
+        if (error) {
+            return { ok: false, error: error.code === "42501" ? "دسترسی لازم را ندارید" : GENERIC }
+        }
+        updated += data?.length ?? 0
+    }
+
+    revalidatePath(`/users/${userId}/progress`)
+    return { ok: true, updated }
 }
 
 // حذف واژه از پیشرفت (soft delete؛ مطابق قرارداد sync: box = null)

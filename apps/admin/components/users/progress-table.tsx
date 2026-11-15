@@ -9,6 +9,7 @@ import {
     ArrowLeft01Icon,
     ArrowRight01Icon,
     ArrowUp01Icon,
+    Calendar03Icon,
     Delete02Icon,
     MinusSignIcon,
     Search01Icon,
@@ -29,6 +30,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ConfirmDialog } from "@/components/sources/confirm-dialog"
 import { AddProgressWordsDialog } from "@/components/users/add-progress-words-dialog"
 import { SelectCheckbox } from "@/components/users/select-checkbox"
+import { SetDueDialog } from "@/components/users/set-due-dialog"
 import {
     changeProgressBox,
     removeProgress,
@@ -41,17 +43,21 @@ import { LEARNED_BOX, MIN_BOX } from "@/lib/leitner"
 import { levelLabel } from "@/lib/levels"
 import { cn } from "@/lib/utils"
 
-type SortKey = "en" | "level" | "box" | "due" | "updatedAt"
+type SortKey = "en" | "fa" | "level" | "box" | "due" | "updatedAt"
 type SortDir = "asc" | "desc"
 
-// عرض ستون‌ها ثابت است؛ فقط ستون «واژه» باقی عرض را می‌گیرد
+// عرض ستون‌ها ثابت است؛ فقط دو ستون «واژه» و «ترجمه» باقی عرض را تقسیم می‌کنند
 const columns: { key: SortKey; label: string; className?: string }[] = [
     { key: "en", label: "واژه" },
+    { key: "fa", label: "ترجمه" },
     { key: "level", label: "سطح", className: "w-24" },
     { key: "box", label: "پیشرفت", className: "w-64" },
     { key: "due", label: "سررسید", className: "w-36" },
     { key: "updatedAt", label: "بروزرسانی", className: "w-44" },
 ]
+
+// ستون‌های خارج از columns: چک‌باکس، ردیف و عملیات
+const EXTRA_COLUMNS = 3
 
 const PAGE_SIZES = [10, 25, 50, 100] as const
 const DEFAULT_PAGE_SIZE = 50
@@ -119,6 +125,7 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
     const [page, setPage] = useState(0)
     const [selected, setSelected] = useState<Set<number>>(() => new Set())
     const [busyId, setBusyId] = useState<number | null>(null)
+    const [dueOpen, setDueOpen] = useState(false)
     const [pending, startTransition] = useTransition()
 
     const counts = useMemo(() => {
@@ -149,21 +156,26 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                 return (Date.parse(x as string) - Date.parse(y as string)) * factor
             }
             if (typeof x === "number" && typeof y === "number") return (x - y) * factor
-            return String(x).localeCompare(String(y), "en", { sensitivity: "base" }) * factor
+            const locale = sortKey === "fa" ? "fa" : "en"
+            return String(x).localeCompare(String(y), locale, { sensitivity: "base" }) * factor
         })
     }, [filtered, sortKey, sortDir])
 
     // صفحه‌بندی
     const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize))
     const currentPage = Math.min(page, pageCount - 1)
-    const pageRows = sorted.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-    const rangeFrom = sorted.length ? currentPage * pageSize + 1 : 0
-    const rangeTo = Math.min(sorted.length, (currentPage + 1) * pageSize)
+    const pageStart = currentPage * pageSize
+    const pageRows = sorted.slice(pageStart, pageStart + pageSize)
+    const rangeFrom = sorted.length ? pageStart + 1 : 0
+    const rangeTo = Math.min(sorted.length, pageStart + pageSize)
 
     // فقط انتخاب‌شده‌هایی که در فیلتر/جستجوی فعلی دیده می‌شوند اعمال می‌شوند
-    const selectedIds = useMemo(
-        () => filtered.filter((r) => selected.has(r.wordId)).map((r) => r.wordId),
-        [filtered, selected]
+    const selectedRows = useMemo(() => filtered.filter((r) => selected.has(r.wordId)), [filtered, selected])
+    const selectedIds = useMemo(() => selectedRows.map((r) => r.wordId), [selectedRows])
+    // واژهٔ یادگرفته‌شده سررسید ندارد؛ از تغییر سررسید مستثنی است
+    const dueIds = useMemo(
+        () => selectedRows.filter((r) => r.box < LEARNED_BOX).map((r) => r.wordId),
+        [selectedRows]
     )
     const allSelected = filtered.length > 0 && selectedIds.length === filtered.length
     const someSelected = selectedIds.length > 0 && !allSelected
@@ -284,9 +296,9 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                 {/* نوار عملیات گروهی؛ فقط وقتی واژه‌ای انتخاب شده باشد */}
                 {selectedIds.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2 rounded-xl bg-brand-deep/5 p-2 ps-4">
-            <span className="me-2 text-sm font-medium">
-              {nf.format(selectedIds.length)} واژه انتخاب شده
-            </span>
+                        <span className="me-2 text-sm font-medium">
+                            {nf.format(selectedIds.length)} واژه انتخاب شده
+                        </span>
                         <Button size="sm" variant="outline" disabled={pending} onClick={() => shiftSelected(1)}>
                             <HugeiconsIcon icon={Add01Icon} size={16} aria-hidden="true" />
                             یک جعبه جلو
@@ -310,6 +322,15 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                         </DropdownMenu>
                         <Button
                             size="sm"
+                            variant="outline"
+                            disabled={pending || dueIds.length === 0}
+                            onClick={() => setDueOpen(true)}
+                        >
+                            <HugeiconsIcon icon={Calendar03Icon} size={16} aria-hidden="true" />
+                            تغییر سررسید
+                        </Button>
+                        <Button
+                            size="sm"
                             variant="ghost"
                             disabled={pending}
                             onClick={() => setSelected(new Set())}
@@ -320,7 +341,7 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                     </div>
                 )}
 
-                <Table className="table-fixed min-w-240">
+                <Table className="table-fixed min-w-280">
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-10">
@@ -332,6 +353,7 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                                     onChange={toggleAll}
                                 />
                             </TableHead>
+                            <TableHead className="w-16">ردیف</TableHead>
                             {columns.map((col) => {
                                 const active = col.key === sortKey
                                 return (
@@ -369,12 +391,15 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                     <TableBody>
                         {pageRows.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={columns.length + 2} className="h-24 text-center text-muted-foreground">
+                                <TableCell
+                                    colSpan={columns.length + EXTRA_COLUMNS}
+                                    className="h-24 text-center text-muted-foreground"
+                                >
                                     {rows.length ? "واژه‌ای با این فیلتر پیدا نشد" : "این کاربر هنوز پیشرفتی ندارد"}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            pageRows.map((r) => {
+                            pageRows.map((r, i) => {
                                 const busy = busyId === r.wordId
                                 const isSelected = selected.has(r.wordId)
                                 return (
@@ -390,9 +415,22 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                                                 onChange={() => toggleOne(r.wordId)}
                                             />
                                         </TableCell>
+                                        {/* شمارهٔ ردیف بر اساس ترتیب نمایش فعلی و در کل صفحه‌ها */}
+                                        <TableCell className="text-muted-foreground">
+                                            {nf.format(pageStart + i + 1)}
+                                        </TableCell>
                                         <TableCell>
-                                            <span dir="ltr" className="block truncate font-medium">{r.en}</span>
-                                            <span className="block truncate text-xs text-muted-foreground">{r.fa}</span>
+                                            <span dir="ltr" className="block truncate font-medium">
+                                                {r.en}
+                                                {r.sense && (
+                                                    <span className="ms-2 text-xs font-normal text-muted-foreground">
+                                                        ({r.sense})
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="block truncate">{r.fa}</span>
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="secondary" dir="ltr">{levelLabel(r.level)}</Badge>
@@ -430,16 +468,16 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                                         <TableCell>
                                             {r.due ? (
                                                 <span className={cn("text-sm", r.overdue && "font-medium text-destructive")}>
-                          {dueFmt.format(new Date(r.due))}
-                        </span>
+                                                    {dueFmt.format(new Date(r.due))}
+                                                </span>
                                             ) : (
                                                 <span className="text-muted-foreground">—</span>
                                             )}
                                         </TableCell>
                                         <TableCell>
-                      <span dir="ltr" className="inline-block text-xs whitespace-nowrap text-muted-foreground">
-                        {dateFmt.format(new Date(r.updatedAt))}
-                      </span>
+                                            <span dir="ltr" className="inline-block text-xs whitespace-nowrap text-muted-foreground">
+                                                {dateFmt.format(new Date(r.updatedAt))}
+                                            </span>
                                         </TableCell>
                                         <TableCell>
                                             <ConfirmDialog
@@ -509,8 +547,8 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                             <HugeiconsIcon icon={ArrowRight01Icon} size={16} aria-hidden="true" />
                         </Button>
                         <span className="min-w-16 text-center text-sm">
-              {nf.format(currentPage + 1)} / {nf.format(pageCount)}
-            </span>
+                            {nf.format(currentPage + 1)} / {nf.format(pageCount)}
+                        </span>
                         <Button
                             size="icon-sm"
                             variant="outline"
@@ -523,6 +561,14 @@ export function ProgressTable({ userId, rows }: { userId: string; rows: UserProg
                     </div>
                 </div>
             </CardContent>
+
+            <SetDueDialog
+                open={dueOpen}
+                onOpenChange={setDueOpen}
+                userId={userId}
+                wordIds={dueIds}
+                skipped={selectedIds.length - dueIds.length}
+            />
         </Card>
     )
 }
