@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
+export const AUTH_STORAGE_KEY = 'papita-auth';
+
 // SSR-safe storage for Supabase Auth
 const authStorage = {
     getItem: async (key) => {
@@ -42,6 +44,7 @@ export const supabase = createClient(
     {
         auth: {
             storage: authStorage,
+            storageKey: AUTH_STORAGE_KEY,
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: false,

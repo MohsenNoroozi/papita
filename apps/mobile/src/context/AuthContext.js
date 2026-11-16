@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../lib/supabase';
+import { supabase, authStorage, AUTH_STORAGE_KEY } from '../lib/supabase';
 import { wipeLocal } from '../storage';
 
 const LAST_USER_KEY = 'last_user_id';
@@ -10,6 +10,17 @@ const Ctx = createContext(null);
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [ready, setReady] = useState(false);
+
+    // نشست ذخیره‌شده روی گوشی (حتی اگر access token منقضی شده باشد)
+    async function readStoredSession() {
+        try {
+            const raw = await authStorage.getItem(AUTH_STORAGE_KEY);
+            const s = raw ? JSON.parse(raw) : null;
+            return s?.user && s?.refresh_token ? s : null;
+        } catch {
+            return null;
+        }
+    }
 
     useEffect(() => {
         let alive = true;
@@ -27,8 +38,17 @@ export function AuthProvider({ children }) {
             }
         };
 
-        supabase.auth.getSession().then(({ data }) => accept(data.session));
-        const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => accept(s));
+        // supabase.auth.getSession().then(({ data }) => accept(data.session));
+        (async () => {
+            const { data } = await supabase.auth.getSession();
+            // آفلاین و توکن منقضی: از نشست ذخیره‌شده استفاده کن
+            await accept(data.session ?? (await readStoredSession()));
+        })();
+
+        const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+            if (event === 'SIGNED_OUT') accept(null).then(() => {});
+            else if (s) accept(s).then(() => {}); // رویدادهای بدون نشست (مثلاً خطای شبکه) نادیده گرفته شوند
+        });
 
         // توصیه Supabase برای React Native: refresh توکن فقط وقتی اپ فعال است
         const app = AppState.addEventListener('change', (st) => {
