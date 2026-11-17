@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCatalog } from '@/context/CatalogContext';
 import { useProgress } from '@/context/ProgressContext';
 import { useSettings } from '@/context/SettingsContext';
+import { useBarInset } from '@/context/BarInsetContext';
 import { isRelevant } from '@/leitner';
 import { colors } from '@/theme';
 import ProgressBar from '@/components/ProgressBar';
@@ -16,6 +17,7 @@ export default function SourcesScreen() {
     const { sources, getWordsOfSource } = useCatalog();
     const { progress } = useProgress();
     const { level, hideEasySources, setHideEasySources } = useSettings();
+    const barInset = useBarInset();
 
     const allRows = useMemo(
         () =>
@@ -44,7 +46,7 @@ export default function SourcesScreen() {
             <FlatList
                 data={rows}
                 keyExtractor={(r) => String(r.source.id)}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: 8 + barInset }]}
                 ListHeaderComponent={
                     <View>
                         <Text style={styles.title}>منابع</Text>

@@ -11,6 +11,7 @@ import { colors } from '@/theme';
 import BoxStars from '@/components/BoxStars';
 import ScreenHeader from '@/components/ScreenHeader';
 import SpeakButton from '@/components/SpeakButton';
+import {useBarInset} from "@/context/BarInsetContext";
 
 function titleOf(key) {
     if (key === BOX_NEW) return 'کلمات جدید';
@@ -25,6 +26,7 @@ export default function BoxScreen() {
     const { words: all } = useCatalog();
     const { progress } = useProgress();
     const { level } = useSettings();
+    const barInset = useBarInset();
 
     const goHome = useCallback(() => router.navigate('/'), [router]);
 
@@ -50,7 +52,7 @@ export default function BoxScreen() {
             <FlatList
                 data={list}
                 keyExtractor={(w) => String(w.id)}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: 8 + barInset }]}
                 ListHeaderComponent={<Text style={styles.count}>{list.length} کلمه</Text>}
                 ListEmptyComponent={<Text style={styles.empty}>کلمه‌ای در این جعبه نیست</Text>}
                 renderItem={({ item }) => (

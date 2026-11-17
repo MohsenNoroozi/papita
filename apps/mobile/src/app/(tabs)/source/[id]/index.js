@@ -20,6 +20,7 @@ import RoundIconButton from '@/components/RoundIconButton';
 import ScreenHeader from '@/components/ScreenHeader';
 import SpeakButton from '@/components/SpeakButton';
 import SplitButton from '@/components/SplitButton';
+import {useBarInset} from "@/context/BarInsetContext";
 
 const FOOTER_HEIGHT = 72;
 
@@ -30,6 +31,7 @@ export default function SourceScreen() {
     const { getSource, getWordsOfSource } = useCatalog();
     const source = getSource(sourceId);
     const words = useMemo(() => getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
+    const barInset = useBarInset();
 
     const { progress } = useProgress();
     const { deckSize, setDeckSize, level } = useSettings();
@@ -111,7 +113,7 @@ export default function SourceScreen() {
                 <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} />
             )}
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { marginBottom: barInset }]}>
                 <SplitButton
                     style={styles.flex}
                     title={deckCount > 0 ? `یادگیری (${deckCount} کلمه)` : 'یادگیری'}
@@ -134,7 +136,7 @@ export default function SourceScreen() {
 
             {/* گزینه‌های تعداد کلمات دسته؛ بالای دکمه */}
             {menuOpen && (
-                <View style={styles.menu}>
+                <View style={[styles.menu, { bottom: FOOTER_HEIGHT + 6 + barInset }]}>
                     {DECK_SIZE_OPTIONS.map((n) => {
                         const selected = n === deckSize;
                         return (

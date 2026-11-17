@@ -16,6 +16,7 @@ import LearnedAllDialog from './LearnedAllDialog';
 import ProgressBar from './ProgressBar';
 import ScreenHeader from './ScreenHeader';
 import SwipeAway from './SwipeAway';
+import {useBarInset} from "@/context/BarInsetContext";
 
 function formatDuration(ms) {
     const total = Math.max(0, Math.round(ms / 1000));
@@ -43,6 +44,7 @@ export default function DeckSession({
                                         showBack = true,
                                     }) {
     const router = useRouter();
+    const barInset = useBarInset();
     const isReview = mode === 'review';
 
     const { progress, getProgress, setEntry, addToBox1, removeFromBoxes, markSeen } = useProgress();
@@ -269,7 +271,7 @@ export default function DeckSession({
         const remaining = pick(Infinity, isReview ? used.current : undefined).length;
 
         return (
-            <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+            <SafeAreaView style={styles.screen} edges={barInset ? ['top'] : ['top', 'bottom']}>
                 <ScreenHeader title={title} showBack={showBack} />
 
                 <SwipeAway direction="left" enterFrom="left" onDismiss={backToLast} style={styles.flex}>
@@ -327,7 +329,7 @@ export default function DeckSession({
                         )}
                     </ScrollView>
 
-                    <View style={styles.actionsRow}>
+                    <View style={[styles.actionsRow, { paddingBottom: barInset }]}>
                         <IconTextButton
                             icon="play-skip-forward-outline"
                             label="دسته بعدی"
@@ -353,7 +355,7 @@ export default function DeckSession({
     const ratio = (deck.length - unadded.length) / deck.length;
 
     return (
-        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.screen} edges={barInset ? ['top'] : ['top', 'bottom']}>
             <ScreenHeader
                 title={title}
                 showBack={showBack}
@@ -381,7 +383,7 @@ export default function DeckSession({
                 />
             </View>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { paddingBottom: barInset }]}>
                 <IconTextButton icon="shuffle" label="تصادفی" onPress={reshuffle} />
 
                 {!isReview && (

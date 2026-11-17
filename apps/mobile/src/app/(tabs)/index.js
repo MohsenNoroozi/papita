@@ -25,6 +25,7 @@ import { colors } from '@/theme';
 import Button from '@/components/Button';
 import { inspectStorage } from '@/storage';
 import Avatar from "@/components/Avatar";
+import {useBarInset} from "@/context/BarInsetContext";
 
 
 // عکس پس‌زمینه (Unsplash، گرادیان آبی تیره به بنفش، رایگان)
@@ -47,6 +48,7 @@ export default function Home() {
     const { ready, progress, reset, shiftDays, syncNow } = useProgress();
     const [refreshing, setRefreshing] = useState(false);
     const printStorage = () => inspectStorage();
+    const barInset = useBarInset();
 
     // متن نوار وضعیت روی عکس تیره باید روشن باشد
     useFocusEffect(
@@ -87,7 +89,7 @@ export default function Home() {
         <View style={styles.screen}>
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[styles.content, { paddingBottom: 8 + barInset }]}
             >
                 <View style={styles.heroWrap}>
                     <View style={[styles.hero]}>
