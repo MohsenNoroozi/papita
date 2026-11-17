@@ -6,7 +6,7 @@ import {
     ScrollView,
     ActivityIndicator,
     Pressable,
-    ImageBackground,
+    Image,
     StatusBar,
     Dimensions,
     Alert,
@@ -15,22 +15,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useCatalog } from '../../context/CatalogContext';
-import { useProgress } from '../../context/ProgressContext';
-import { useSettings } from '../../context/SettingsContext';
-import { useProfile } from '../../context/ProfileContext';
-import {
-    getDueWords,
-    getNewWords,
-    isRelevant,
-    MASTERED,
-    INTERVALS_DAYS,
-} from '../../leitner';
-import { colors } from '../../theme';
-import Button from '../../components/Button';
-import ProgressBar from '../../components/ProgressBar';
-import { inspectStorage } from '../../storage';
-import Avatar from "../../components/Avatar";
+import { useCatalog } from '@/context/CatalogContext';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
+import { useProfile } from '@/context/ProfileContext';
+import { getDueWords, countBoxes } from '@/leitner';
+import BoxesOverview from '@/components/BoxesOverview';
+import { colors } from '@/theme';
+import Button from '@/components/Button';
+import { inspectStorage } from '@/storage';
+import Avatar from "@/components/Avatar";
 
 
 // عکس پس‌زمینه (Unsplash، گرادیان آبی تیره به بنفش، رایگان)
@@ -42,22 +36,6 @@ const HERO_FALLBACK = '#3b2f8f'; // اگر عکس لود نشد، این رنگ 
 const OVERLAP = 104; // مقداری از کارت‌ها که روی بک‌گراند می‌افتد
 const { height } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(300, height * 0.4);
-
-function greeting() {
-    const h = new Date().getHours();
-    if (h < 11) return 'صبح بخیر';
-    if (h < 16) return 'روز بخیر';
-    if (h < 20) return 'عصر بخیر';
-    return 'شب بخیر';
-}
-
-function todayLabel() {
-    try {
-        return new Date().toLocaleDateString('fa-IR', { weekday: 'long', day: 'numeric', month: 'long' });
-    } catch {
-        return '';
-    }
-}
 
 export default function Home() {
     const router = useRouter();
@@ -79,38 +57,13 @@ export default function Home() {
     );
 
     const stats = useMemo(() => {
-        // فقط کلمات مرتبط با سطح حساب می‌شوند (کلمه‌ای که در جعبه است همیشه مرتبط است)
-        const relevant = words.filter((w) => isRelevant(w, progress, level));
-
-        // پیشرفت کلی = یادگیری + مرور:
-        // کلمه‌ای که هنوز در جعبه نیست ۰ امتیاز دارد، ورود به جعبه ۱ اولین قدم است،
-        // و هر بار که با مرور موفق به جعبه بالاتر می‌رود امتیازش بیشتر می‌شود تا ۱ (کاملاً یادگرفته).
-        const steps = INTERVALS_DAYS.length + 1;
-        let score = 0;
-        let mastered = 0;
-        let boxed = 0;
-        for (const w of relevant) {
-            const e = progress[w.id];
-            if (!e) continue;
-            boxed += 1;
-            if (e.box === MASTERED) {
-                mastered += 1;
-                score += 1;
-            } else {
-                score += Math.min(e.box, steps) / steps;
-            }
-        }
-
+        const boxes = countBoxes(words, progress, level);
         return {
             due: getDueWords(words, progress).length, // مرور: بدون فیلتر سطح
-            fresh: getNewWords(words, progress, level).length,
-            learning: boxed - mastered,
-            mastered,
-            overall: relevant.length ? Math.min(1, score / relevant.length) : 0,
+            fresh: boxes.fresh,
+            boxes,
         };
     }, [words, progress, level]);
-
-    const dateText = useMemo(todayLabel, []);
 
     if (!ready) {
         return (
@@ -136,13 +89,13 @@ export default function Home() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.content}
             >
-                {/* ---------- بالا: عکس پس‌زمینه ---------- */}
                 <View style={styles.heroWrap}>
-                    <ImageBackground
-                        source={HERO_IMAGE}
-                        resizeMode="cover"
-                        style={[styles.hero, { paddingTop: insets.top + 64 }]}
-                    >
+                    <View style={[styles.hero]}>
+                        <Image
+                            source={HERO_IMAGE}
+                            resizeMode="cover"
+                            style={StyleSheet.absoluteFill}
+                        />
                         <View style={styles.tint} pointerEvents="none" />
                         {/* دایره‌های تزئینی */}
                         <View style={[styles.bubble, styles.bubbleA]} pointerEvents="none" />
@@ -163,11 +116,7 @@ export default function Home() {
                                 <Avatar uri={profile?.avatar_url} size={40} style={styles.ring} />
                             </Pressable>
                         </View>
-
-                        <Text style={styles.hello}>{greeting()} 👋</Text>
-                        <Text style={styles.title}>امروز</Text>
-                        {!!dateText && <Text style={styles.date}>{dateText}</Text>}
-                    </ImageBackground>
+                    </View>
                 </View>
 
                 {/* ---------- دو کارت کنار هم: نیمی روی عکس، نیمی پایین آن ---------- */}
@@ -217,28 +166,16 @@ export default function Home() {
 
                 {/* ---------- پایین: آمار ---------- */}
                 <View style={styles.body}>
-                    <View style={styles.progressCard}>
-                        <View style={styles.progressTop}>
-                            <Text style={styles.progressTitle}>پیشرفت کلی</Text>
-                            <Text style={styles.progressPct}>{Math.round(stats.overall * 100)}%</Text>
-                        </View>
-                        <ProgressBar value={stats.overall} />
-                        <Text style={styles.progressHint}>
-                            شامل یادگیری کلمات جدید و ارتقای آن‌ها با مرور
-                        </Text>
-                    </View>
-
-                    <View style={styles.statsRow}>
-                        <View style={styles.stat}>
-                            <Ionicons name="school-outline" size={22} color={colors.primary} />
-                            <Text style={styles.statNum}>{stats.learning}</Text>
-                            <Text style={styles.statLabel}>در حال یادگیری</Text>
-                        </View>
-                        <View style={styles.stat}>
-                            <Ionicons name="trophy-outline" size={22} color={colors.primary} />
-                            <Text style={styles.statNum}>{stats.mastered}</Text>
-                            <Text style={styles.statLabel}>کاملاً یادگرفته</Text>
-                        </View>
+                    <View style={styles.boxesSection}>
+                        <Text style={styles.boxesTitle}>جعبه‌های من</Text>
+                        <BoxesOverview
+                            fresh={stats.boxes.fresh}
+                            counts={stats.boxes.counts}
+                            mastered={stats.boxes.mastered}
+                            onSelect={(key) => router.push(`/source/box/${key}`, {
+                                withAnchor: true,
+                            })}
+                        />
                     </View>
 
                     {__DEV__ && (
@@ -275,7 +212,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     ring: { borderWidth: 2, borderColor: 'rgba(255,255,255,0.8)' },
-    hero: { flex: 1, paddingHorizontal: 24, paddingBottom: OVERLAP + 16 },
+    hero: { flex: 1, position: 'relative', overflow: 'hidden', paddingHorizontal: 24, paddingBottom: OVERLAP + 16 },
     tint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(24, 14, 70, 0.30)' },
     bubble: { position: 'absolute', backgroundColor: 'rgba(255,255,255,0.10)' },
     bubbleA: { width: 180, height: 180, borderRadius: 90, top: -50, left: -60 },
@@ -329,15 +266,9 @@ const styles = StyleSheet.create({
 
     // --- body ---
     body: { paddingHorizontal: 20, paddingTop: 18, gap: 12 },
-    progressCard: { backgroundColor: colors.card, borderRadius: 20, padding: 16, gap: 10 },
-    progressTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    progressTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-    progressHint: { fontSize: 12, color: colors.sub, textAlign: 'right' },
-    progressPct: { fontSize: 15, fontWeight: '800', color: colors.primary },
-    statsRow: { flexDirection: 'row', gap: 12 },
     stat: { flex: 1, backgroundColor: colors.card, borderRadius: 18, padding: 16, alignItems: 'center', gap: 2 },
-    statNum: { fontSize: 24, fontWeight: '800', color: colors.text, marginTop: 4 },
-    statLabel: { fontSize: 13, color: colors.sub },
+    boxesSection: { gap: 8 },
+    boxesTitle: { fontSize: 15, fontWeight: '700', color: colors.text, textAlign: 'right' },
 
     dev: {
         marginTop: 4,

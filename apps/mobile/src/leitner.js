@@ -7,8 +7,9 @@ export const REVIEW_DECK_SIZE = 100;
 // فاصله مرور هر جعبه (به روز). طول این آرایه = تعداد جعبه‌ها
 export const INTERVALS_DAYS = [1, 2, 4, 8, 16];
 
-// تعداد کلمه در هر دسته یادگیری
-export const LEARN_BATCH_SIZE = 5;
+// کلیدهای جعبه برای BoxesOverview: 'new' | 1..N | 'mastered'
+export const BOX_NEW = 'new';
+export const BOX_MASTERED = 'mastered';
 
 export const MASTERED = INTERVALS_DAYS.length + 1;
 
@@ -136,11 +137,6 @@ export function pickMixedDeck(sources, getWordsOfSource, progress, seen, size = 
     return out;
 }
 
-// کلمات جدیدِ مناسب سطح کاربر که هنوز وارد سیستم نشده‌اند
-export function getNewWords(words, progress, userLevel) {
-    return words.filter((w) => !progress[w.id] && isForLevel(w, userLevel));
-}
-
 // کلماتی که زمان مرورشان رسیده
 export function getDueWords(words, progress, now = Date.now()) {
     return words.filter((w) => {
@@ -149,6 +145,29 @@ export function getDueWords(words, progress, now = Date.now()) {
     });
 }
 
-export function buildReviewQueue(words, progress, now = Date.now()) {
-    return shuffle(getDueWords(words, progress, now));
+// شمارش کلمات هر جعبه. «جدید» = بیرون از جعبه و مناسب سطح کاربر
+export function countBoxes(words, progress, userLevel) {
+    const counts = Array(INTERVALS_DAYS.length).fill(0);
+    let mastered = 0;
+    let fresh = 0;
+    for (const w of words) {
+        const e = progress[w.id];
+        if (!e) {
+            if (isForLevel(w, userLevel)) fresh += 1;
+        } else if (e.box === MASTERED) mastered += 1;
+        else counts[e.box - 1] += 1;
+    }
+    return { counts, mastered, fresh };
+}
+
+// کلمات یک جعبه (key از همان کلیدهای بالا؛ از رشته هم پشتیبانی می‌شود)
+export function wordsInBox(words, progress, key, userLevel) {
+    const k = key === BOX_NEW || key === BOX_MASTERED ? key : Number(key);
+    return words.filter((w) => {
+        const e = progress[w.id];
+        if (k === BOX_NEW) return !e && isForLevel(w, userLevel);
+        if (!e) return false;
+        if (k === BOX_MASTERED) return e.box === MASTERED;
+        return e.box === k;
+    });
 }

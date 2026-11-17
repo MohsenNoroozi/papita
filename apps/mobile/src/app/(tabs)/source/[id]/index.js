@@ -4,23 +4,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useCatalog } from '../../../../context/CatalogContext';
-import { useProgress } from '../../../../context/ProgressContext';
-import { useSettings } from '../../../../context/SettingsContext';
+import { useCatalog } from '@/context/CatalogContext';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
 import {
-    INTERVALS_DAYS,
-    MASTERED,
     DECK_SIZE_OPTIONS,
-    isForLevel,
     isRelevant,
-} from '../../../../leitner';
-import { colors } from '../../../../theme';
-import BoxesOverview from '../../../../components/BoxesOverview';
-import BoxStars from '../../../../components/BoxStars';
-import RoundIconButton from '../../../../components/RoundIconButton';
-import ScreenHeader from '../../../../components/ScreenHeader';
-import SpeakButton from '../../../../components/SpeakButton';
-import SplitButton from '../../../../components/SplitButton';
+    countBoxes,
+    wordsInBox,
+} from '@/leitner';
+import { colors } from '@/theme';
+import BoxesOverview from '@/components/BoxesOverview';
+import BoxStars from '@/components/BoxStars';
+import RoundIconButton from '@/components/RoundIconButton';
+import ScreenHeader from '@/components/ScreenHeader';
+import SpeakButton from '@/components/SpeakButton';
+import SplitButton from '@/components/SplitButton';
 
 const FOOTER_HEIGHT = 72;
 
@@ -39,18 +38,17 @@ export default function SourceScreen() {
     // با ترک صفحه، منو بسته شود
     useFocusEffect(useCallback(() => () => setMenuOpen(false), []));
 
-    // تعداد کلمات این منبع در هر جعبه
-    const boxData = useMemo(() => {
-        const counts = Array(INTERVALS_DAYS.length).fill(0);
-        let mastered = 0;
-        for (const w of words) {
-            const e = progress[w.id];
-            if (!e) continue;
-            if (e.box === MASTERED) mastered += 1;
-            else counts[e.box - 1] += 1;
-        }
-        return { counts, mastered };
-    }, [words, progress]);
+    const [selectedBox, setSelectedBox] = useState(null); // null = همه کلمات
+
+    const boxData = useMemo(() => countBoxes(words, progress, level), [words, progress, level]);
+
+    const visibleWords = useMemo(
+        () => (selectedBox == null ? words : wordsInBox(words, progress, selectedBox, level)),
+        [words, progress, level, selectedBox]
+    );
+
+// لمس دوباره‌ی همان جعبه، فیلتر را برمی‌دارد
+    const toggleBox = (key) => setSelectedBox((cur) => (cur === key ? null : key));
 
     if (!source) {
         return (
@@ -66,7 +64,7 @@ export default function SourceScreen() {
     // کلمات مرتبط با سطح (یا داخل جعبه) برای مخرج‌ها؛ کلمات جدیدِ قابل پیشنهاد برای دکمه یادگیری
     const relevantCount = words.filter((w) => isRelevant(w, progress, level)).length;
     const belowCount = words.length - relevantCount;
-    const unboxed = words.filter((w) => !progress[w.id] && isForLevel(w, level)).length;
+    const unboxed = boxData.fresh;
     const deckCount = Math.min(deckSize, unboxed);
 
     return (
@@ -75,23 +73,27 @@ export default function SourceScreen() {
 
             <FlatList
                 style={styles.flex}
-                data={words}
-                extraData={[progress, level]}
+                data={visibleWords}
+                extraData={[progress, level, selectedBox]}
                 keyExtractor={(w) => String(w.id)}
                 contentContainerStyle={styles.list}
                 ListHeaderComponent={
                     <View style={styles.header}>
                         <BoxesOverview
+                            fresh={boxData.fresh}
                             counts={boxData.counts}
                             mastered={boxData.mastered}
-                            total={relevantCount}
+                            selected={selectedBox}
+                            onSelect={toggleBox}
                         />
                         <Text style={styles.count}>
-                            {words.length} کلمه
-                            {belowCount > 0 ? ` · ${belowCount} کلمه پایین‌تر از سطح تو` : ''}
+                            {selectedBox == null
+                                ? `${words.length} کلمه${belowCount > 0 ? ` · ${belowCount} کلمه پایین‌تر از سطح تو` : ''}`
+                                : `${visibleWords.length} کلمه در جعبه انتخاب‌شده`}
                         </Text>
                     </View>
                 }
+                ListEmptyComponent={<Text style={styles.empty}>کلمه‌ای در این جعبه نیست</Text>}
                 renderItem={({ item }) => (
                     <View style={[styles.row, !isRelevant(item, progress, level) && styles.rowBelow]}>
                         <SpeakButton text={item.en} size={18} />
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg },
     flex: { flex: 1 },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    empty: { fontSize: 16, color: colors.sub },
+    empty: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 24 },
     list: { paddingHorizontal: 20, paddingBottom: 12, gap: 10 },
     header: { gap: 10, marginBottom: 2 },
     count: { fontSize: 14, color: colors.sub, textAlign: 'center' },

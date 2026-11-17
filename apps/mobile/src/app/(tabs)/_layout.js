@@ -2,7 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme';
+import { colors } from '@/theme';
 
 const icon = (name, nameFocused) => ({ color, size, focused }) => (
     <Ionicons name={focused ? nameFocused : name} color={color} size={size} />
@@ -35,9 +35,9 @@ export default function TabsLayout() {
                 },
             }}
         >
-            <Tabs.Screen name="index" options={{ title: 'خانه', tabBarIcon: icon('home-outline', 'home') }} />
-            <Tabs.Screen name="source" options={{ title: 'منابع', tabBarIcon: icon('library-outline', 'library') }} />
-            <Tabs.Screen name="review" options={{ title: 'مرور', tabBarIcon: icon('repeat-outline', 'repeat') }} />
+            <Tabs.Screen name="index" options={{ title: 'خانه', tabBarIcon: icon('home-outline', 'home'), popToTopOnBlur: true }} />
+            <Tabs.Screen name="source" options={{ title: 'منابع', tabBarIcon: icon('library-outline', 'library'), popToTopOnBlur: true }}/>
+            <Tabs.Screen name="review" options={{ title: 'مرور', tabBarIcon: icon('repeat-outline', 'repeat'), popToTopOnBlur: true }} />
         </Tabs>
     );
 }

@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors } from '@/theme';
 
-export default function ScreenHeader({ title, right, showBack = true }) {
+export default function ScreenHeader({ title, right, showBack = true, onBack }) {
     const router = useRouter();
     return (
         <View style={styles.row}>
             {showBack ? (
-                <Pressable onPress={() => router.back()} hitSlop={12} style={styles.side}>
+                <Pressable onPress={onBack ?? (() => router.back())} hitSlop={12} style={styles.side}>
                     <Ionicons name="chevron-back" size={28} color={colors.text} />
                 </Pressable>
             ) : (

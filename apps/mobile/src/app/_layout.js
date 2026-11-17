@@ -1,14 +1,14 @@
 import React from 'react';
 import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
 import {Stack} from 'expo-router';
-import {AuthProvider, useAuth} from '../context/AuthContext';
-import {SettingsProvider} from '../context/SettingsContext';
-import {ProgressProvider} from '../context/ProgressContext';
-import {CatalogProvider, useCatalog} from '../context/CatalogContext';
-import {ProfileProvider} from '../context/ProfileContext';
-import LoginScreen from '../components/LoginScreen';
-import Button from '../components/Button';
-import {colors} from '../theme';
+import {AuthProvider, useAuth} from '@/context/AuthContext';
+import {SettingsProvider} from '@/context/SettingsContext';
+import {ProgressProvider} from '@/context/ProgressContext';
+import {CatalogProvider, useCatalog} from '@/context/CatalogContext';
+import {ProfileProvider} from '@/context/ProfileContext';
+import LoginScreen from '@/components/LoginScreen';
+import Button from '@/components/Button';
+import {colors} from '@/theme';
 
 // تا کاتالوگ برای بار اول از سرور نیامده، اپ نمایش داده نمی‌شود
 function CatalogGate({children}) {
