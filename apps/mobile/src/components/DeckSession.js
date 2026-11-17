@@ -20,6 +20,10 @@ import ScreenHeader from './ScreenHeader';
 import SwipeAway from './SwipeAway';
 import {useBarInset} from "@/context/BarInsetContext";
 
+const BUTTON_ROW_HEIGHT = 52;
+const BUTTON_FRAME_PADDING = 4;
+const BUTTON_AREA_INSET = BUTTON_ROW_HEIGHT + BUTTON_FRAME_PADDING * 2 + 8 + 8;
+
 function formatDuration(ms) {
     const total = Math.max(0, Math.round(ms / 1000));
     const m = Math.floor(total / 60);
@@ -369,7 +373,7 @@ export default function DeckSession({
                 <ProgressBar value={(idx + 1) / deck.length} />
             </View>
 
-            <View style={styles.cardArea}>
+            <View style={[styles.cardArea, { paddingBottom: BUTTON_AREA_INSET }]}>
                 <FlashCard
                     key={`${deckKey}-${word.id}`}
                     word={word}
@@ -474,11 +478,11 @@ const styles = StyleSheet.create({
     glassTint: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.barGlass },
     buttonRow: {
         flexDirection: 'row',
-        height: 52,
+        height: BUTTON_ROW_HEIGHT,
         gap: 2,
     },
     buttonItem: {
-        height: 52,
+        height: BUTTON_ROW_HEIGHT,
         borderRadius: 26,
         backgroundColor: 'transparent',
     },

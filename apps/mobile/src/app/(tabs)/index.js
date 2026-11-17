@@ -139,7 +139,7 @@ export default function Home() {
                         <Button
                             title="شروع"
                             disabled={stats.due === 0}
-                            onPress={() => router.navigate('/review')}
+                            onPress={() => router.push('/(review)/review')}
                             style={styles.cardBtn}
                         />
                     </View>

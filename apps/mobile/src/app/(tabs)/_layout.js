@@ -10,7 +10,6 @@ import { BlurView, BlurTargetView } from 'expo-blur';
 const ITEMS = [
     { key: 'home', href: '/', title: 'خانه', icon: 'home-outline', iconOn: 'home' },
     { key: 'source', href: '/source', title: 'منابع', icon: 'library-outline', iconOn: 'library' },
-    { key: 'review', href: '/review', title: 'مرور', icon: 'repeat-outline', iconOn: 'repeat' },
 ];
 
 const ITEM_HEIGHT = 52;
@@ -22,7 +21,6 @@ const CONTENT_GAP = 8; // فاصله محتوا تا نوار
 function activeIndexOf(path) {
     if (path === '/' || path === '') return 0;
     if (path.startsWith('/source')) return 1; // شامل /source/[id] و /source/box/[key]
-    if (path.startsWith('/review')) return 2;
     return -1;
 }
 
