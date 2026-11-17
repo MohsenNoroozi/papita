@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, FlatList, Switch, StyleSheet } from 'react-native';
+import { View, Text, Pressable, FlatList, RefreshControl, Switch, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useBarInset } from '@/context/BarInsetContext';
 import { isRelevant } from '@/leitner';
 import { colors } from '@/theme';
 import ProgressBar from '@/components/ProgressBar';
+import { useRefresh } from '@/context/RefreshContext';
 
 export default function SourcesScreen() {
     const router = useRouter();
@@ -18,6 +19,7 @@ export default function SourcesScreen() {
     const { progress } = useProgress();
     const { level, hideEasySources, setHideEasySources } = useSettings();
     const barInset = useBarInset();
+    const { refreshing, refreshAll } = useRefresh();
 
     const allRows = useMemo(
         () =>
@@ -45,6 +47,7 @@ export default function SourcesScreen() {
         <SafeAreaView style={styles.screen} edges={['top']}>
             <FlatList
                 data={rows}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} />}
                 keyExtractor={(r) => String(r.source.id)}
                 contentContainerStyle={[styles.list, { paddingBottom: 8 + barInset }]}
                 ListHeaderComponent={

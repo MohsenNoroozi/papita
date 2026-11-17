@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -14,12 +14,14 @@ import { colors } from '@/theme';
 import Avatar from '@/components/Avatar';
 import Button from '@/components/Button';
 import ScreenHeader from '@/components/ScreenHeader';
+import { useRefresh } from '@/context/RefreshContext';
 
 export default function ProfileScreen() {
     const { signOut } = useAuth();
     const { profile, email, updateProfile, uploadAvatar } = useProfile();
     const { syncNow, pendingCount } = useProgress();
     const { level, setLevel } = useSettings();
+    const { refreshing, refreshAll } = useRefresh();
 
     const [name, setName] = useState(profile?.fullname ?? '');
     const [savingName, setSavingName] = useState(false);
@@ -101,7 +103,7 @@ export default function ProfileScreen() {
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+                <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} />}>
                     {/* آواتار */}
                     <View style={styles.avatarWrap}>
                         <Pressable onPress={pickAvatar} disabled={uploading} accessibilityLabel="تغییر آواتار">

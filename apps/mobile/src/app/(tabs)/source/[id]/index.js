@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +21,7 @@ import ScreenHeader from '@/components/ScreenHeader';
 import SpeakButton from '@/components/SpeakButton';
 import SplitButton from '@/components/SplitButton';
 import {useBarInset} from "@/context/BarInsetContext";
+import { useRefresh } from '@/context/RefreshContext';
 
 const FOOTER_HEIGHT = 72;
 
@@ -32,6 +33,7 @@ export default function SourceScreen() {
     const source = getSource(sourceId);
     const words = useMemo(() => getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
     const barInset = useBarInset();
+    const { refreshing, refreshAll } = useRefresh();
 
     const { progress } = useProgress();
     const { deckSize, setDeckSize, level } = useSettings();
@@ -76,6 +78,7 @@ export default function SourceScreen() {
             <FlatList
                 style={styles.flex}
                 data={visibleWords}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} />}
                 extraData={[progress, level, selectedBox]}
                 keyExtractor={(w) => String(w.id)}
                 contentContainerStyle={styles.list}

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, FlatList, BackHandler, StyleSheet } from 'react-native';
+import { View, Text, FlatList, RefreshControl, BackHandler, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -12,6 +12,7 @@ import BoxStars from '@/components/BoxStars';
 import ScreenHeader from '@/components/ScreenHeader';
 import SpeakButton from '@/components/SpeakButton';
 import {useBarInset} from "@/context/BarInsetContext";
+import { useRefresh } from '@/context/RefreshContext';
 
 function titleOf(key) {
     if (key === BOX_NEW) return 'کلمات جدید';
@@ -27,6 +28,7 @@ export default function BoxScreen() {
     const { progress } = useProgress();
     const { level } = useSettings();
     const barInset = useBarInset();
+    const { refreshing, refreshAll } = useRefresh();
 
     const goHome = useCallback(() => router.navigate('/'), [router]);
 
@@ -51,6 +53,7 @@ export default function BoxScreen() {
             <ScreenHeader title={titleOf(key)} onBack={goHome} />
             <FlatList
                 data={list}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} />}
                 keyExtractor={(w) => String(w.id)}
                 contentContainerStyle={[styles.list, { paddingBottom: 8 + barInset }]}
                 ListHeaderComponent={<Text style={styles.count}>{list.length} کلمه</Text>}

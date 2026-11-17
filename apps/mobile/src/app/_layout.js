@@ -6,6 +6,7 @@ import {SettingsProvider} from '@/context/SettingsContext';
 import {ProgressProvider} from '@/context/ProgressContext';
 import {CatalogProvider, useCatalog} from '@/context/CatalogContext';
 import {ProfileProvider} from '@/context/ProfileContext';
+import {RefreshProvider} from '@/context/RefreshContext';
 import LoginScreen from '@/components/LoginScreen';
 import Button from '@/components/Button';
 import {colors} from '@/theme';
@@ -54,13 +55,15 @@ function Root() {
             <ProgressProvider>
                 <ProfileProvider>
                     <CatalogProvider>
-                        <CatalogGate>
-                            <Stack screenOptions={{headerShown: false}}>
-                                <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
-                                <Stack.Screen name="(session)" options={{headerShown: false}}/>
-                                <Stack.Screen name="(review)" options={{headerShown: false}}/>
-                            </Stack>
-                        </CatalogGate>
+                        <RefreshProvider>
+                            <CatalogGate>
+                                <Stack screenOptions={{headerShown: false}}>
+                                    <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+                                    <Stack.Screen name="(session)" options={{headerShown: false}}/>
+                                    <Stack.Screen name="(review)" options={{headerShown: false}}/>
+                                </Stack>
+                            </CatalogGate>
+                        </RefreshProvider>
                     </CatalogProvider>
                 </ProfileProvider>
             </ProgressProvider>
