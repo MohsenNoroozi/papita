@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image } from 'expo-image';
-import { resolveAvatarUrl } from '../lib/avatar';
-import { colors } from '../theme';
+import { resolveAvatarUrl } from '@/lib/avatar';
+import { colors } from '@/theme';
 
-const DEFAULT_AVATAR = require('../../assets/avatar/user.svg');
+const DEFAULT_AVATAR = require('@/assets/avatar/user.svg');
 
 // uri = مقدار ستون avatar_url (مسیر یا آدرس کامل)
 export default function Avatar({ uri, size = 40, style }) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors } from '@/theme';
 
 // دکمه دایره‌ای ساده فقط با آیکون.
 // muted = خاکستری (خاموش)، filled = آبی توپر (کار اصلی)

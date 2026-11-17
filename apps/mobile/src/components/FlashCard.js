@@ -3,10 +3,10 @@ import {Animated, Easing, PanResponder, Text, View, Pressable, Modal, StyleSheet
 import {Ionicons} from '@expo/vector-icons';
 import SpeakButton from './SpeakButton';
 import BoxStars from './BoxStars';
-import {speak, AUTO_PLAY_ON_REVIEW} from '../speech';
-import {useCatalog} from '../context/CatalogContext';
-import {INTERVALS_DAYS, MASTERED} from '../leitner';
-import {colors} from '../theme';
+import {speak, AUTO_PLAY_ON_REVIEW} from '@/speech';
+import {useCatalog} from '@/context/CatalogContext';
+import {INTERVALS_DAYS, MASTERED} from '@/leitner';
+import {colors} from '@/theme';
 
 const {width, height} = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;

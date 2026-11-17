@@ -4,11 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useProgress } from '../context/ProgressContext';
-import { useSettings } from '../context/SettingsContext';
-import { applyAnswer, shuffle, REVIEW_DECK_SIZE } from '../leitner';
-import { stopSpeaking } from '../speech';
-import { colors } from '../theme';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
+import { applyAnswer, shuffle, REVIEW_DECK_SIZE } from '@/leitner';
+import { stopSpeaking } from '@/speech';
+import { colors } from '@/theme';
 import FlashCard from './FlashCard';
 import FillIconTextButton from './FillIconTextButton';
 import IconTextButton from './IconTextButton';

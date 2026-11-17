@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { colors } from '../theme';
+import { colors } from '@/theme';
 
 export default function ProgressBar({ value }) {
     const v = useRef(new Animated.Value(value)).current;

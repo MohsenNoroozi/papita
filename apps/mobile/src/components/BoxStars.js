@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MASTERED, starsForBox } from '../leitner';
-import { colors } from '../theme';
+import { MASTERED, starsForBox } from '@/leitner';
+import { colors } from '@/theme';
 
 const STAR_COUNT = 5;
 

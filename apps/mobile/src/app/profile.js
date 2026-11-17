@@ -5,15 +5,15 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth } from '../context/AuthContext';
-import { useProfile } from '../context/ProfileContext';
-import { useProgress } from '../context/ProgressContext';
-import { useSettings } from '../context/SettingsContext';
-import { LEVELS, levelLabel } from '../leitner';
-import { colors } from '../theme';
-import Avatar from '../components/Avatar';
-import Button from '../components/Button';
-import ScreenHeader from '../components/ScreenHeader';
+import { useAuth } from '@/context/AuthContext';
+import { useProfile } from '@/context/ProfileContext';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
+import { LEVELS, levelLabel } from '@/leitner';
+import { colors } from '@/theme';
+import Avatar from '@/components/Avatar';
+import Button from '@/components/Button';
+import ScreenHeader from '@/components/ScreenHeader';
 
 export default function ProfileScreen() {
     const { signOut } = useAuth();

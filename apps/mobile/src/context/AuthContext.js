@@ -1,8 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase, authStorage, AUTH_STORAGE_KEY } from '../lib/supabase';
-import { wipeLocal } from '../storage';
+import { supabase, authStorage, AUTH_STORAGE_KEY } from '@/lib/supabase';
+import { wipeLocal } from '@/storage';
 
 const LAST_USER_KEY = 'last_user_id';
 const Ctx = createContext(null);

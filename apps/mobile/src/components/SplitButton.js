@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors } from '@/theme';
 
 export default function SplitButton({ title, onPress, onToggle, open, disabled, style }) {
     return (

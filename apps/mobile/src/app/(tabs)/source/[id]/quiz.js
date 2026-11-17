@@ -3,19 +3,19 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
-import { useCatalog } from '../../../../context/CatalogContext';
-import { useProgress } from '../../../../context/ProgressContext';
-import { useSettings } from '../../../../context/SettingsContext';
-import { shuffle } from '../../../../leitner';
-import { speak, stopSpeaking } from '../../../../speech';
-import { colors } from '../../../../theme';
-import Button from '../../../../components/Button';
-import FadeIn from '../../../../components/FadeIn';
-import ProgressBar from '../../../../components/ProgressBar';
-import ScreenHeader from '../../../../components/ScreenHeader';
-import SpeakButton from '../../../../components/SpeakButton';
-import RoundIconButton from '../../../../components/RoundIconButton';
-import LearnedAllDialog from '../../../../components/LearnedAllDialog';
+import { useCatalog } from '@/context/CatalogContext';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
+import { shuffle } from '@/leitner';
+import { speak, stopSpeaking } from '@/speech';
+import { colors } from '@/theme';
+import Button from '@/components/Button';
+import FadeIn from '@/components/FadeIn';
+import ProgressBar from '@/components/ProgressBar';
+import ScreenHeader from '@/components/ScreenHeader';
+import SpeakButton from '@/components/SpeakButton';
+import RoundIconButton from '@/components/RoundIconButton';
+import LearnedAllDialog from '@/components/LearnedAllDialog';
 
 // جهت‌های پرسش. برای آزمون کوتاه‌تر فقط ['en2fa'] بگذارید
 const DIRECTIONS = ['en2fa', 'fa2en'];

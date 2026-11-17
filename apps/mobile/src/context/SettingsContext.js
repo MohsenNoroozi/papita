@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DECK_SIZE, DEFAULT_LEVEL } from '../leitner';
+import { DECK_SIZE, DEFAULT_LEVEL } from '@/leitner';
 
 const KEY = 'settings_v1';
 const DEFAULTS = {

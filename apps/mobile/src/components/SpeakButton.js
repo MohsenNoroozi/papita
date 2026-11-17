@@ -1,8 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { speak } from '../speech';
-import { colors } from '../theme';
+import { speak } from '@/speech';
+import { colors } from '@/theme';
 
 const SLOW_RATE = 0.6;
 

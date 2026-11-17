@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useCatalog } from '../../../context/CatalogContext';
-import { useProgress } from '../../../context/ProgressContext';
-import { useSettings } from '../../../context/SettingsContext';
-import { isRelevant } from '../../../leitner';
-import { colors } from '../../../theme';
-import ProgressBar from '../../../components/ProgressBar';
+import { useCatalog } from '@/context/CatalogContext';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
+import { isRelevant } from '@/leitner';
+import { colors } from '@/theme';
+import ProgressBar from '@/components/ProgressBar';
 
 export default function SourcesScreen() {
     const router = useRouter();

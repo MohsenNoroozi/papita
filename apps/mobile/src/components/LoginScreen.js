@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme';
+import { useAuth } from '@/context/AuthContext';
+import { colors } from '@/theme';
 import Button from './Button';
 
 export default function LoginScreen() {

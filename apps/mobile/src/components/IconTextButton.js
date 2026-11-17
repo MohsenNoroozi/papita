@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors } from '@/theme';
 
 // دکمه مستطیلی با آیکون بالا و متن زیر آن.
 // filled = آبی توپر (کار اصلی)، muted = خاکستری (خاموش)

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../lib/supabase';
-import { EPOCH } from '../storage';
+import { supabase } from '@/lib/supabase';
+import { EPOCH } from '@/storage';
 
 const KEY = 'catalog_v1';
 const EMPTY = { lastSync: EPOCH, sources: {}, words: {}, sourceWords: {} };

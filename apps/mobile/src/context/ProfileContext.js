@@ -3,8 +3,8 @@ import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decode } from 'base64-arraybuffer';
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
-import { avatarPath } from '../lib/avatar';
+import { supabase } from '@/lib/supabase';
+import { avatarPath } from '@/lib/avatar';
 
 const Ctx = createContext(null);
 const COLS = 'fullname,email,phone,age,avatar_url,level,updated_at';

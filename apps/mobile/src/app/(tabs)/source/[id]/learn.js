@@ -3,14 +3,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { useCatalog } from '../../../../context/CatalogContext';
-import { useProgress } from '../../../../context/ProgressContext';
-import { useSettings } from '../../../../context/SettingsContext';
-import { pickDeck, pickMixedDeck, isForLevel } from '../../../../leitner';
-import { colors } from '../../../../theme';
-import Button from '../../../../components/Button';
-import DeckSession from '../../../../components/DeckSession';
-import ScreenHeader from '../../../../components/ScreenHeader';
+import { useCatalog } from '@/context/CatalogContext';
+import { useProgress } from '@/context/ProgressContext';
+import { useSettings } from '@/context/SettingsContext';
+import { pickDeck, pickMixedDeck, isForLevel } from '@/leitner';
+import { colors } from '@/theme';
+import Button from '@/components/Button';
+import DeckSession from '@/components/DeckSession';
+import ScreenHeader from '@/components/ScreenHeader';
 
 export default function SourceLearn() {
     const router = useRouter();

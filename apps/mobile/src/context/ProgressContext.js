@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import {
     EPOCH,
     loadProgress,
@@ -11,8 +11,8 @@ import {
     loadSync,
     saveOutbox,
     saveSince,
-} from '../storage';
-import { startEntry } from '../leitner';
+} from '@/storage';
+import { startEntry } from '@/leitner';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SYNC_DELAY_MS = 3000; // چند ثانیه بعد از آخرین تغییر، به سرور فرستاده می‌شود

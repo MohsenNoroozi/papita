@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors } from '@/theme';
 
 // دکمه دایره‌ای که پس‌زمینه‌اش از پایین به بالا به نسبت ratio (۰ تا ۱) پر می‌شود
 export default function FillIconButton({

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { loadCatalog, syncCatalog } from '../data/catalogStore';
+import { loadCatalog, syncCatalog } from '@/data/catalogStore';
 
 const Ctx = createContext(null);
 const MIN_GAP_MS = 60_000; // حداکثر دقیقه‌ای یک بار sync خودکار
