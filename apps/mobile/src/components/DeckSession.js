@@ -426,7 +426,7 @@ export default function DeckSession({
                 <IconTextButton
                     style={styles.buttonItem}
                     icon={autoSpeak ? 'volume-high-outline' : 'volume-mute-outline'}
-                    label="تلفظ"
+                    label="صدا"
                     muted={!autoSpeak}
                     accessibilityState={{ selected: autoSpeak }}
                     onPress={toggleAutoSpeak}

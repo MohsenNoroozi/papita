@@ -34,13 +34,12 @@ export default function ReviewScreen() {
         <DeckSession
             mode="review"
             title="مرور"
-            showBack={false}
             pick={pick}
             quizHref={(ids) => `/(session)/quiz?ids=${ids.join(',')}`}
             onExit={() => router.navigate('/')}
             renderEmpty={() => (
                 <SafeAreaView style={styles.screen} edges={['top']}>
-                    <ScreenHeader title="مرور" showBack={false} />
+                    <ScreenHeader title="مرور" />
                     <View style={styles.center}>
                         <Text style={styles.emoji}>✅</Text>
                         <Text style={styles.title}>امروز چیزی برای مرور نداری</Text>
