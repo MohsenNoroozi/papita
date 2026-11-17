@@ -15,7 +15,7 @@ export default function IconTextButton({
                                            accessibilityState,
                                            style,
                                        }) {
-    const color = filled ? '#FFFFFF' : muted ? colors.sub : colors.primary;
+    const color = filled ? '#FFFFFF' : muted ? colors.sub : colors.barInactive;
     return (
         <Pressable
             onPress={onPress}
@@ -49,10 +49,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
         borderRadius: 16,
     },
-    soft: { backgroundColor: colors.primarySoft },
+    soft: { backgroundColor: 'transparent' },
     filled: { backgroundColor: colors.primary },
-    muted: { backgroundColor: colors.border },
+    muted: { backgroundColor: 'transparent' },
     disabled: { opacity: 0.4 },
-    pressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
+    pressed: { backgroundColor: colors.barPressed },
     label: { fontSize: 12, fontWeight: '700' },
 });

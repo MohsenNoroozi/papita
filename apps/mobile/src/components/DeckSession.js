@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView, BlurTargetView } from 'expo-blur';
 
 import { useProgress } from '@/context/ProgressContext';
 import { useSettings } from '@/context/SettingsContext';
@@ -44,7 +46,9 @@ export default function DeckSession({
                                         showBack = true,
                                     }) {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const barInset = mode === 'review' ? useBarInset() : 0;
+    const buttonBlurTarget = useRef(null);
     const isReview = mode === 'review';
 
     const { progress, getProgress, setEntry, addToBox1, removeFromBoxes, markSeen } = useProgress();
@@ -383,11 +387,23 @@ export default function DeckSession({
                 />
             </View>
 
-            <View style={[styles.footer, { paddingBottom: barInset }]}>
-                <IconTextButton icon="shuffle" label="تصادفی" onPress={reshuffle} />
+            <View style={[styles.footer, { bottom: insets.bottom + 8 + (barInset ? barInset : 0) }]}>
+                <View style={styles.shadowWrap}>
+                    <View style={styles.glass}>
+                        <BlurView
+                            blurTarget={buttonBlurTarget}
+                            intensity={95}
+                            tint="systemChromeMaterialLight"
+                            blurMethod="dimezisBlurView"
+                            style={StyleSheet.absoluteFill}
+                        />
+                        <View style={styles.glassTint} pointerEvents="none" />
+                        <BlurTargetView ref={buttonBlurTarget} style={styles.buttonRow}>
+                <IconTextButton style={styles.buttonItem} icon="shuffle" label="تصادفی" onPress={reshuffle} />
 
                 {!isReview && (
                     <FillIconTextButton
+                        style={styles.buttonItem}
                         icon="rocket-outline"
                         label="یاد گرفتم"
                         ratio={ratio}
@@ -397,18 +413,23 @@ export default function DeckSession({
                 )}
 
                 <IconTextButton
+                    style={styles.buttonItem}
                     icon="extension-puzzle-outline"
                     label="آزمون"
                     onPress={() => openQuiz(quizDeckHref)}
                 />
 
                 <IconTextButton
+                    style={styles.buttonItem}
                     icon={autoSpeak ? 'volume-high-outline' : 'volume-mute-outline'}
                     label="تلفظ"
                     muted={!autoSpeak}
                     accessibilityState={{ selected: autoSpeak }}
                     onPress={toggleAutoSpeak}
                 />
+                        </BlurTargetView>
+                    </View>
+                </View>
             </View>
 
             {!isReview && (
@@ -431,11 +452,35 @@ const styles = StyleSheet.create({
     bar: { paddingHorizontal: 24, marginTop: 4 },
     cardArea: { flex: 1, justifyContent: 'center' },
     footer: {
+        position: 'absolute',
+        left: 28,
+        right: 28,
+    },
+    shadowWrap: {
+        borderRadius: 30,
+        shadowColor: colors.barShadow,
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 2,
+    },
+    glass: {
+        borderRadius: 30,
+        overflow: 'hidden',
+        padding: 4,
+        borderWidth: StyleSheet.hairlineWidth * 2,
+        borderColor: colors.barBorder,
+    },
+    glassTint: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.barGlass },
+    buttonRow: {
         flexDirection: 'row',
-        gap: 10,
-        paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 0,
+        height: 52,
+        gap: 2,
+    },
+    buttonItem: {
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: 'transparent',
     },
 
     // آمار

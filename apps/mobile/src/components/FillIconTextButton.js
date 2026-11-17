@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
         flex: 1,
         height: HEIGHT,
         borderRadius: 16,
-        backgroundColor: colors.primarySoft,
+        backgroundColor: 'transparent',
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         overflow: 'hidden',
-        backgroundColor: colors.primary,
+        backgroundColor: colors.barActive,
     },
     fillLayer: {
         position: 'absolute',
