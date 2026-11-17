@@ -57,8 +57,8 @@ export default function SourceLearn() {
             pick={pick}
             quizHref={(ids) =>
                 isMixed
-                    ? `/quiz?ids=${ids.join(',')}`
-                    : `/source/${source.id}/quiz?ids=${ids.join(',')}`
+                    ? `/(session)/quiz?ids=${ids.join(',')}`
+                    : `/(session)/quiz?id=${source.id}&ids=${ids.join(',')}`
             }
             onExit={() => router.back()}
             renderEmpty={() => {
@@ -83,7 +83,7 @@ export default function SourceLearn() {
                                     <Button
                                         variant="soft"
                                         title="آزمون همه کلمات"
-                                        onPress={() => router.push(`/source/${source.id}/quiz`)}
+                                        onPress={() => router.push(`/(session)/quiz?id=${source.id}`)}
                                     />
                                 )}
                                 <Button variant="ghost" title="بازگشت" onPress={() => router.back()} />

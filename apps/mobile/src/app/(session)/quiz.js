@@ -41,19 +41,19 @@ function buildQueue(words, pool) {
 export default function SourceQuiz() {
     const router = useRouter();
     const { id, ids } = useLocalSearchParams();
-    const sourceId = Number(id);
+    const sourceId = id ? Number(id) : null;
     const { words: allWords, getSource, getWordsOfSource } = useCatalog();
-    const source = getSource(sourceId);
-    const sourceWords = useMemo(() => getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
+    const source = sourceId == null ? null : getSource(sourceId);
+    const sourceWords = useMemo(() => sourceId == null ? [] : getWordsOfSource(sourceId), [getWordsOfSource, sourceId]);
     const isDeckQuiz = !!ids;
     const words = useMemo(() => {
         if (!ids) return sourceWords; // آزمون کل منبع
         const wanted = new Set(String(ids).split(',').map(Number));
         // اگر منبع مشخص نباشد (مثلاً از صفحه مرور)، از بین همه کلمات انتخاب می‌شود
-        return (id ? sourceWords : allWords).filter((w) => wanted.has(w.id));
-    }, [id, ids, sourceWords, allWords]);
+        return (sourceId != null ? sourceWords : allWords).filter((w) => wanted.has(w.id));
+    }, [sourceId, ids, sourceWords, allWords]);
     // گزینه‌های غلط ترجیحاً از کل کلمات همین منبع انتخاب می‌شوند
-    const pool = sourceWords.length >= 4 ? sourceWords : allWords;
+    const pool = sourceId != null && sourceWords.length >= 4 ? sourceWords : allWords;
 
     const { progress, addToBox1 } = useProgress();
     const { autoSpeak } = useSettings();
@@ -153,7 +153,7 @@ export default function SourceQuiz() {
     const header = (
         <>
             <ScreenHeader
-                title={isDeckQuiz ? 'آزمون دسته' : `آزمون ${source.title}`}
+                title={isDeckQuiz ? 'آزمون دسته' : source ? `آزمون ${source.title}` : 'آزمون'}
                 right={
                     <RoundIconButton
                         icon="rocket-outline"

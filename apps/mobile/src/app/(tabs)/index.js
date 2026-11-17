@@ -160,7 +160,7 @@ export default function Home() {
                         <Button
                             title="شروع"
                             disabled={stats.fresh === 0}
-                            onPress={() => router.push('/learn')}
+                            onPress={() => router.push('/(session)/learn')}
                             style={styles.cardBtn}
                         />
                     </View>

@@ -57,6 +57,7 @@ function Root() {
                         <CatalogGate>
                             <Stack screenOptions={{headerShown: false}}>
                                 <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+                                <Stack.Screen name="(session)" options={{headerShown: false}}/>
                             </Stack>
                         </CatalogGate>
                     </CatalogProvider>

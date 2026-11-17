@@ -36,7 +36,7 @@ export default function ReviewScreen() {
             title="مرور"
             showBack={false}
             pick={pick}
-            quizHref={(ids) => `/quiz?ids=${ids.join(',')}`}
+            quizHref={(ids) => `/(session)/quiz?ids=${ids.join(',')}`}
             onExit={() => router.navigate('/')}
             renderEmpty={() => (
                 <SafeAreaView style={styles.screen} edges={['top']}>

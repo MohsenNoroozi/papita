@@ -26,8 +26,6 @@ function activeIndexOf(path) {
     return -1;
 }
 
-const shouldHide = (path) => /\/(learn|quiz)(\/|$)/.test(path);
-
 function BarItem({ item, focused, onPress }) {
     const scale = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
@@ -118,7 +116,7 @@ export default function AppLayout() {
         };
     }, []);
 
-    const showBar = !keyboard && !shouldHide(path);
+    const showBar = !keyboard;
     const bottom = insets.bottom + BOTTOM_GAP;
     const inset = showBar ? BAR_HEIGHT + bottom + CONTENT_GAP : 0;
 

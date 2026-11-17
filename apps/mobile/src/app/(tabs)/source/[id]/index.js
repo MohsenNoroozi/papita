@@ -121,7 +121,7 @@ export default function SourceScreen() {
                     open={menuOpen}
                     onPress={() => {
                         setMenuOpen(false);
-                        router.push(`/source/${source.id}/learn`);
+                        router.push(`/(session)/learn?id=${source.id}`);
                     }}
                     onToggle={() => setMenuOpen((o) => !o)}
                 />
@@ -129,7 +129,7 @@ export default function SourceScreen() {
                     icon="extension-puzzle-outline"
                     size={56}
                     disabled={words.length === 0}
-                    onPress={() => router.push(`/source/${source.id}/quiz`)}
+                    onPress={() => router.push(`/(session)/quiz?id=${source.id}`)}
                     accessibilityLabel="آزمون همه کلمات"
                 />
             </View>

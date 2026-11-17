@@ -44,7 +44,7 @@ export default function DeckSession({
                                         showBack = true,
                                     }) {
     const router = useRouter();
-    const barInset = useBarInset();
+    const barInset = mode === 'review' ? useBarInset() : 0;
     const isReview = mode === 'review';
 
     const { progress, getProgress, setEntry, addToBox1, removeFromBoxes, markSeen } = useProgress();
