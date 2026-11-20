@@ -137,12 +137,13 @@ export function pickMixedDeck(sources, getWordsOfSource, progress, seen, size = 
     return out;
 }
 
+export function isDue(entry, now = Date.now()) {
+    return !!entry && entry.box !== MASTERED && entry.due <= now;
+}
+
 // کلماتی که زمان مرورشان رسیده
 export function getDueWords(words, progress, now = Date.now()) {
-    return words.filter((w) => {
-        const p = progress[w.id];
-        return p && p.box !== MASTERED && p.due <= now;
-    });
+    return words.filter((w) => isDue(progress[w.id], now));
 }
 
 // شمارش کلمات هر جعبه. «جدید» = بیرون از جعبه و مناسب سطح کاربر

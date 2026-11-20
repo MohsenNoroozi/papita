@@ -14,7 +14,11 @@ import ScreenHeader from '@/components/ScreenHeader';
 
 export default function SourceLearn() {
     const router = useRouter();
-    const { id } = useLocalSearchParams();
+    const { id, ids } = useLocalSearchParams();
+    const selectedIds = useMemo(
+        () => (ids ? new Set(String(ids).split(',').map(Number)) : null),
+        [ids]
+    );
     // بدون id (مسیر /learn از داشبورد) = یادگیری ترکیبی از همه منابع
     const isMixed = id == null;
     const sourceId = Number(id);
@@ -32,11 +36,21 @@ export default function SourceLearn() {
 
     // دسته یادگیری: منبع واحد یا ترکیب منابع؛ هر دو سطح‌محور و کمتر دیده‌شده‌ها اول
     const pick = useCallback(
-        (size) =>
-            isMixed
+        (size) => {
+            // کلمات انتخاب‌شده: کمتر دیده‌شده‌ها اول، به اندازه دسته
+            if (selectedIds && !isMixed) {
+                const progress = getProgress();
+                const seen = getSeen();
+                return allWords
+                    .filter((w) => selectedIds.has(w.id) && !progress[w.id])
+                    .sort((a, b) => (seen[a.id]?.n ?? 0) - (seen[b.id]?.n ?? 0))
+                    .slice(0, size);
+            }
+            return isMixed
                 ? pickMixedDeck(sources, getWordsOfSource, getProgress(), getSeen(), size, level)
-                : pickDeck(allWords, getProgress(), getSeen(), size, level),
-        [isMixed, sources, getWordsOfSource, allWords, getProgress, getSeen, level]
+                : pickDeck(allWords, getProgress(), getSeen(), size, level);
+        },
+        [isMixed, selectedIds, sources, getWordsOfSource, allWords, getProgress, getSeen, level]
     );
 
     if (!isMixed && (!source || allWords.length === 0)) {

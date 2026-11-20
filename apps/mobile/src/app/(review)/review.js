@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useCatalog } from '@/context/CatalogContext';
 import { useProgress } from '@/context/ProgressContext';
@@ -13,13 +13,29 @@ import ScreenHeader from '@/components/ScreenHeader';
 
 export default function ReviewScreen() {
     const router = useRouter();
-    const { words } = useCatalog();
+    const { id, ids } = useLocalSearchParams();
+    const { words, getWordsOfSource } = useCatalog();
     const { ready, getProgress } = useProgress();
 
-    // کلمات سررسیدشده از همه منابع؛ اول عقب‌افتاده‌ترین‌ها (فیلتر سطح ندارد)
+    const hasScope = id != null || ids != null; // از صفحه منبع آمده؛ بازگشت = برگشت به همان صفحه
+    // بدون id: همه منابع. با id: فقط کلمات همان منبع (همراه مثال‌ها)
+    const scoped = useMemo(
+        () => (id != null ? getWordsOfSource(Number(id)) : words),
+        [id, words, getWordsOfSource]
+    );
+    const selectedIds = useMemo(
+        () => (ids ? new Set(String(ids).split(',').map(Number)) : null),
+        [ids]
+    );
+
+    // کلمات سررسیدشده؛ اول عقب‌افتاده‌ترین‌ها (فیلتر سطح ندارد).
+    // اگر کلمه‌ای انتخاب شده باشد، همان‌ها (حتی اگر هنوز سررسید نشده باشند) مرور می‌شوند
     const pick = useCallback(
-        (size, exclude) => pickDueDeck(words, getProgress(), size, exclude),
-        [words, getProgress]
+        (size, exclude) => {
+            const pool = selectedIds ? scoped.filter((w) => selectedIds.has(w.id)) : scoped;
+            return pickDueDeck(pool, getProgress(), size, exclude);
+        },
+        [scoped, selectedIds, getProgress]
     );
 
     if (!ready) {
@@ -35,8 +51,8 @@ export default function ReviewScreen() {
             mode="review"
             title="مرور"
             pick={pick}
-            quizHref={(ids) => `/(session)/quiz?ids=${ids.join(',')}`}
-            onExit={() => router.navigate('/')}
+            quizHref={(list) => `/(session)/quiz?ids=${list.join(',')}`}
+            onExit={() => (hasScope ? router.back() : router.navigate('/'))}
             renderEmpty={() => (
                 <SafeAreaView style={styles.screen} edges={['top']}>
                     <ScreenHeader title="مرور" />

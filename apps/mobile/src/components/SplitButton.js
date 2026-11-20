@@ -22,7 +22,7 @@ export default function SplitButton({ title, onPress, onToggle, open, disabled, 
                 disabled={disabled}
                 style={({ pressed }) => [styles.main, pressed && styles.pressed]}
             >
-                <Text style={styles.text}>{title}</Text>
+                <Text style={styles.text} numberOfLines={1} adjustsFontSizeToFit>{title}</Text>
             </Pressable>
         </View>
     );
