@@ -15,7 +15,7 @@ export default function LoginPage() {
           <div className="relative flex h-full flex-col items-center justify-center px-8 text-center">
             <div className="@container flex flex-row-reverse w-full max-w-lg min-w-sm items-center justify-center gap-3">
               <Image
-                src="/images/logo.png"
+                src="/images/papita-logo.svg"
                 alt="پروفایل کاربر"
                 width={256}
                 height={256}

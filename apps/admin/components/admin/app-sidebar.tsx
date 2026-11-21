@@ -48,7 +48,7 @@ export function AppSidebar() {
             <SidebarHeader className="h-16 justify-center">
                 <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
                     <Image
-                        src="/images/logo.png"
+                        src="/images/papita-logo.svg"
                         alt=""
                         width={64}
                         height={64}
