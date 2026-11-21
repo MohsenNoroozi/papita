@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { colors } from '@/theme';
 
-export default function Button({ title, onPress, variant = 'primary', disabled, style }) {
+export default function Button({ title, onPress, variant = 'primary', disabled, icon, style }) {
     return (
         <Pressable
             onPress={onPress}
@@ -15,13 +15,24 @@ export default function Button({ title, onPress, variant = 'primary', disabled, 
                 style,
             ]}
         >
-            <Text style={[styles.text, styles[`${variant}Text`]]}>{title}</Text>
+            <>
+                {icon ? <>{React.cloneElement(icon, { color: variant === 'primary' ? '#fff' : colors.primary })}</> : null}
+                <Text style={[styles.text, styles[`${variant}Text`]]}>{title}</Text>
+            </>
         </Pressable>
     );
 }
 
 const styles = StyleSheet.create({
-    base: { paddingVertical: 16, paddingHorizontal: 20, borderRadius: 16, alignItems: 'center' },
+    base: {
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 8,
+    },
     primary: { backgroundColor: colors.primary },
     soft: { backgroundColor: colors.primarySoft },
     ghost: { backgroundColor: 'transparent' },

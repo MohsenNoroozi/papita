@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { colors } from '@/theme';
 
+// همیشه از چپ به راست پر می‌شود (direction: 'ltr' جلوی برعکس‌شدن در چیدمان RTL را می‌گیرد)
 export default function ProgressBar({ value }) {
     const v = useRef(new Animated.Value(value)).current;
 
@@ -19,6 +20,13 @@ export default function ProgressBar({ value }) {
 }
 
 const styles = StyleSheet.create({
-    track: { height: 8, borderRadius: 4, backgroundColor: colors.border, overflow: 'hidden' },
+    track: {
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: colors.border,
+        overflow: 'hidden',
+        direction: 'ltr',
+        alignItems: 'flex-start',
+    },
     fill: { height: '100%', borderRadius: 4, backgroundColor: colors.primary },
 });

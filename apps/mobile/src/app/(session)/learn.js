@@ -1,120 +1,38 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useCatalog } from '@/context/CatalogContext';
 import { useProgress } from '@/context/ProgressContext';
 import { useSettings } from '@/context/SettingsContext';
-import { pickDeck, pickMixedDeck, isForLevel } from '@/leitner';
-import { colors } from '@/theme';
-import Button from '@/components/Button';
-import DeckSession from '@/components/DeckSession';
-import ScreenHeader from '@/components/ScreenHeader';
+import { pickDeck, pickMixedDeck } from '@/leitner';
+import LearnSession from '@/components/learn/LearnSession';
 
-export default function SourceLearn() {
+// مسیر: /(session)/learn  (ترکیبی از همه منابع)  یا  /(session)/learn?id=14  (یک منبع)
+export default function Learn() {
     const router = useRouter();
-    const { id, ids } = useLocalSearchParams();
-    const selectedIds = useMemo(
-        () => (ids ? new Set(String(ids).split(',').map(Number)) : null),
-        [ids]
-    );
-    // بدون id (مسیر /learn از داشبورد) = یادگیری ترکیبی از همه منابع
+    const { id } = useLocalSearchParams();
     const isMixed = id == null;
     const sourceId = Number(id);
 
-    const { words: catalogWords, sources, getSource, getWordsOfSource } = useCatalog();
-    const source = isMixed ? null : getSource(sourceId);
-    const allWords = useMemo(
-        () => (isMixed ? [] : getWordsOfSource(sourceId)),
-        [isMixed, getWordsOfSource, sourceId]
-    );
-    const { getProgress, getSeen } = useProgress();
-    const { level } = useSettings();
+    const { sources, getSource, getWordsOfSource } = useCatalog();
+    const { getProgress, getSeen, markSeen } = useProgress();
+    const { level, deckSize } = useSettings();
 
-    const title = isMixed ? 'یادگیری' : source?.title ?? 'منبع';
-
-    // دسته یادگیری: منبع واحد یا ترکیب منابع؛ هر دو سطح‌محور و کمتر دیده‌شده‌ها اول
-    const pick = useCallback(
-        (size) => {
-            // کلمات انتخاب‌شده: کمتر دیده‌شده‌ها اول، به اندازه دسته
-            if (selectedIds && !isMixed) {
-                const progress = getProgress();
-                const seen = getSeen();
-                return allWords
-                    .filter((w) => selectedIds.has(w.id) && !progress[w.id])
-                    .sort((a, b) => (seen[a.id]?.n ?? 0) - (seen[b.id]?.n ?? 0))
-                    .slice(0, size);
-            }
-            return isMixed
-                ? pickMixedDeck(sources, getWordsOfSource, getProgress(), getSeen(), size, level)
-                : pickDeck(allWords, getProgress(), getSeen(), size, level);
-        },
-        [isMixed, selectedIds, sources, getWordsOfSource, allWords, getProgress, getSeen, level]
+    // دسته فقط یک‌بار انتخاب می‌شود تا با تغییر progress وسط کار عوض نشود
+    const [words] = useState(() =>
+        isMixed
+            ? pickMixedDeck(sources, getWordsOfSource, getProgress(), getSeen(), deckSize, level)
+            : pickDeck(getWordsOfSource(sourceId), getProgress(), getSeen(), deckSize, level)
     );
 
-    if (!isMixed && (!source || allWords.length === 0)) {
-        return (
-            <SafeAreaView style={styles.screen} edges={['top']}>
-                <ScreenHeader title={title} />
-                <View style={styles.center}>
-                    <Text style={styles.empty}>کلمه‌ای برای این منبع پیدا نشد</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    return (
-        <DeckSession
-            mode="learn"
-            title={title}
-            pick={pick}
-            quizHref={(ids) =>
-                isMixed
-                    ? `/(session)/quiz?ids=${ids.join(',')}`
-                    : `/(session)/quiz?id=${source.id}&ids=${ids.join(',')}`
-            }
-            onExit={() => router.back()}
-            renderEmpty={() => {
-                // کلماتی که بیرون از جعبه‌اند ولی چون زیر سطح کاربرند پیشنهاد نمی‌شوند
-                const progress = getProgress();
-                const pool = isMixed ? catalogWords : allWords;
-                const belowLevel = pool.filter((w) => !progress[w.id] && !isForLevel(w, level)).length;
-                return (
-                    <SafeAreaView style={styles.screen} edges={['top']}>
-                        <ScreenHeader title={title} />
-                        <View style={styles.center}>
-                            <Text style={styles.emoji}>🎉</Text>
-                            <Text style={styles.title}>
-                                {belowLevel > 0
-                                    ? `کلمات مناسب سطحت تمام شد. ${belowLevel} کلمه پایین‌تر از سطح توست`
-                                    : isMixed
-                                        ? 'همه کلمات در جعبه‌ها هستند'
-                                        : 'همه کلمات این منبع در جعبه‌ها هستند'}
-                            </Text>
-                            <View style={styles.actions}>
-                                {!isMixed && (
-                                    <Button
-                                        variant="soft"
-                                        title="آزمون همه کلمات"
-                                        onPress={() => router.push(`/(session)/quiz?id=${source.id}`)}
-                                    />
-                                )}
-                                <Button variant="ghost" title="بازگشت" onPress={() => router.back()} />
-                            </View>
-                        </View>
-                    </SafeAreaView>
-                );
-            }}
-        />
+    // با خروج از صفحه، کلمات این دسته «دیده‌شده» ثبت می‌شوند تا دسته بعدی سراغ کلمات دیگر برود
+    useEffect(
+        () => () => markSeen(words.map((w) => w.id)),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
     );
+
+    const title = isMixed ? 'یادگیری' : getSource(sourceId)?.title ?? 'یادگیری';
+
+    return <LearnSession words={words} title={title} onDone={() => router.back()} />;
 }
-
-const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-    empty: { fontSize: 16, color: colors.sub },
-    emoji: { fontSize: 56 },
-    title: { fontSize: 22, fontWeight: '800', color: colors.text, textAlign: 'center', marginTop: 8 },
-    actions: { alignSelf: 'stretch', marginTop: 24, gap: 4 },
-});
