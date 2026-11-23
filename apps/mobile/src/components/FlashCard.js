@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 20,
         backfaceVisibility: 'hidden',
-        elevation: 6,
+        elevation: 2,
         shadowColor: '#000',
         shadowOpacity: 0.15,
         shadowRadius: 10,

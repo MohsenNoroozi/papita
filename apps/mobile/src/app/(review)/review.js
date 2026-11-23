@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useCatalog } from '@/context/CatalogContext';
 import { useProgress } from '@/context/ProgressContext';
-import { pickDueDeck } from '@/leitner';
+import { isDue, pickDueDeck } from '@/leitner';
 import { colors } from '@/theme';
 import Button from '@/components/Button';
 import DeckSession from '@/components/DeckSession';
@@ -23,16 +23,20 @@ export default function ReviewScreen() {
         () => (id != null ? getWordsOfSource(Number(id)) : words),
         [id, words, getWordsOfSource]
     );
-    const selectedIds = useMemo(
-        () => (ids ? new Set(String(ids).split(',').map(Number)) : null),
-        [ids]
-    );
+    const selectedIds = useMemo(() => {
+        if (ids == null) return null;
+        const values = Array.isArray(ids) ? ids : [ids];
+        return new Set(values.flatMap((value) => value.split(',')).map(Number).filter(Number.isFinite));
+    }, [ids]);
 
     // کلمات سررسیدشده؛ اول عقب‌افتاده‌ترین‌ها (فیلتر سطح ندارد).
     // اگر کلمه‌ای انتخاب شده باشد، همان‌ها (حتی اگر هنوز سررسید نشده باشند) مرور می‌شوند
     const pick = useCallback(
         (size, exclude) => {
             const pool = selectedIds ? scoped.filter((w) => selectedIds.has(w.id)) : scoped;
+            if (selectedIds) {
+                return pool.filter((w) => !exclude || !exclude.has(w.id));
+            }
             return pickDueDeck(pool, getProgress(), size, exclude);
         },
         [scoped, selectedIds, getProgress]
@@ -51,6 +55,7 @@ export default function ReviewScreen() {
             mode="review"
             title="مرور"
             pick={pick}
+            canApplyReview={(word) => isDue(getProgress()[word.id])}
             quizHref={(list) => `/(session)/quiz?ids=${list.join(',')}`}
             onExit={() => (hasScope ? router.back() : router.navigate('/'))}
             renderEmpty={() => (

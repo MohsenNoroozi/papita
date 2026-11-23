@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, PanResponder, Dimensions } from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {Animated, Dimensions, Easing, PanResponder} from 'react-native';
 
 const { width } = Dimensions.get('window');
 const DISMISS_DISTANCE = width * 0.25;
@@ -39,15 +39,12 @@ export default function SwipeAway({
         PanResponder.create({
             // فقط حرکت واضحاً افقی در جهت مورد نظر را از اسکرول می‌گیرد
             onMoveShouldSetPanResponderCapture: (_, g) => {
-                const claim = g.dx * sign > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 2;
-                if (claim && __DEV__) console.log('[SwipeAway] capture, dx =', Math.round(g.dx));
-                return claim;
+                return g.dx * sign > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 2;
             },
             onPanResponderMove: (_, g) => x.setValue(Math.max(0, g.dx * sign) * sign),
             onPanResponderRelease: (_, g) => {
                 const dist = g.dx * sign;
                 if (dist > DISMISS_DISTANCE || (g.vx * sign > 0.5 && dist > 30)) {
-                    if (__DEV__) console.log('[SwipeAway] dismissed, dx =', Math.round(g.dx));
                     Animated.timing(x, {
                         toValue: sign * width,
                         duration: 200,

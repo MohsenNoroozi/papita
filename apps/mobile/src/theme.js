@@ -21,5 +21,5 @@ export const colors = {
     barActiveBg: '#DBEAFE',     // پس‌زمینه‌ی تب انتخاب‌شده
     barInactive: '#64748B',     // آیکون و متن تب‌های دیگر
     barPressed: '#F1F5F9',
-    barGlass: 'rgba(255, 255, 255, 0.82)',// هرچه عدد کمتر، محتوای زیر بیشتر دیده می‌شود
+    barGlass: 'rgba(255, 255, 255, 1)',
 };

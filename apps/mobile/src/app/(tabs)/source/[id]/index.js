@@ -54,15 +54,15 @@ export default function SourceScreen() {
         )
     );
 
-    // کلمات انتخابی: برای یادگیری فقط «جدید»ها، برای مرور فقط «آماده»ها
+    // هر واژه انتخاب‌شده می‌تواند وارد یادگیری یا مرور شود.
     const picked = useMemo(() => {
         const learn = [];
         const review = [];
         for (const wid of sel.selected) {
             const row = byId.get(wid);
             if (!row) continue;
-            if (row.status.kind === 'new') learn.push(wid);
-            else if (row.status.isDue) review.push(wid);
+            learn.push(wid);
+            review.push(wid);
         }
         return { learn, review };
     }, [sel.selected, byId]);
@@ -118,12 +118,12 @@ export default function SourceScreen() {
     }
 
     // ---------- دکمه‌ها ----------
-    const learnCount = selecting ? picked.learn.length : Math.min(deckSize, learnableCount);
-    const reviewCount = selecting ? picked.review.length : dueCount;
+    const learnCount = selecting ? Math.min(25, sel.count) : Math.min(deckSize, learnableCount);
+    const reviewCount = selecting ? sel.count : dueCount;
 
     const onLearn = () => {
         setMenuOpen(false);
-        const extra = selecting ? `&ids=${picked.learn.join(',')}` : '';
+        const extra = selecting ? `&ids=${picked.learn.slice(0, 25).join(',')}` : '';
         router.push(`/(session)/learn?id=${source.id}${extra}`);
     };
     const onReview = () => {
@@ -187,7 +187,6 @@ export default function SourceScreen() {
                             key: 'learn',
                             icon: 'sparkles',
                             label: learnCount > 0 ? `یادگیری (${learnCount})` : 'یادگیری',
-                            filled: true,
                             disabled: learnCount === 0,
                             onPress: onLearn,
                             onLongPress: onToggleMenu, // نگه‌داشتن = انتخاب تعداد کلمات دسته
@@ -198,14 +197,7 @@ export default function SourceScreen() {
                             label: reviewCount > 0 ? `مرور (${reviewCount})` : 'مرور',
                             disabled: reviewCount === 0,
                             onPress: onReview,
-                        },
-                        {
-                            key: 'quiz',
-                            icon: 'extension-puzzle-outline',
-                            label: 'آزمون',
-                            disabled: words.length === 0,
-                            onPress: () => router.push(`/(session)/quiz?id=${source.id}`),
-                        },
+                        }
                     ]}
                 />
             )}

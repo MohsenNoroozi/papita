@@ -47,6 +47,7 @@ export default function DeckSession({
                                         quizHref,
                                         onExit,
                                         renderEmpty,
+                                        canApplyReview = () => true,
                                         showBack = true,
                                     }) {
     const router = useRouter();
@@ -191,6 +192,7 @@ export default function DeckSession({
 
     // مرور: ثبت پاسخ (همیشه از وضعیت اولیه حساب می‌شود، پس تغییر پاسخ مشکلی ندارد)
     const applyReview = (w, known) => {
+        if (!canApplyReview(w)) return;
         if (!getProgress()[w.id]) return; // کلمه‌ای که دیگر در جعبه نیست دوباره به جعبه اضافه نشود
         const log = reviewLog.current;
         if (!log[w.id]) log[w.id] = { original: getProgress()[w.id] };
