@@ -16,6 +16,10 @@ import MatchingModule from './MatchingModule';
 import ScrambleModule from './ScrambleModule';
 import FinishModule from './FinishModule';
 
+import { stopSpeaking } from '@/speech';
+import { useSettings } from '@/context/SettingsContext';
+import FloatingBar from '@/components/FloatingBar';
+
 /**
  * قدم‌های صفحه یادگیری. هر Component این props را می‌گیرد:
  *   words, pool            کلمات دسته / کل کاتالوگ
@@ -42,6 +46,7 @@ export const STEPS = [
 export default function LearnSession({ words, title = 'یادگیری', onDone }) {
     const { progress, addToBox1 } = useProgress();
     const { words: pool } = useCatalog();
+    const { autoSpeak, setAutoSpeak } = useSettings();
     const [excluded, setExcluded] = useState(() => new Set());
     const [current, setCurrent] = useState(0);
     const [done, setDone] = useState(() => new Set());
@@ -89,8 +94,40 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
     const step = STEPS[current];
     const Component = step.Component;
 
+    const toggleSound = () => {
+        if (autoSpeak) stopSpeaking();
+        setAutoSpeak(!autoSpeak);
+    };
+
+    const barItems = [
+        {
+            key: 'prev',
+            icon: 'arrow-forward-outline',
+            label: 'مرحله قبل',
+            disabled: current === 0,
+            onPress: () => setCurrent(current - 1),
+        },
+        { key: 'restart', icon: 'refresh-outline', label: 'تکرار مرحله', onPress: () => restart(step.key) },
+        {
+            key: 'sound',
+            icon: autoSpeak ? 'volume-high-outline' : 'volume-mute-outline',
+            label: 'صدا',
+            muted: !autoSpeak,
+            accessibilityState: { selected: autoSpeak },
+            onPress: toggleSound,
+        },
+        {
+            key: 'next',
+            icon: 'arrow-back-outline',
+            label: 'مرحله بعد',
+            filled: true,
+            disabled: current === STEPS.length - 1,
+            onPress: () => setCurrent(current + 1),
+        },
+    ];
+
     return (
-        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.screen} edges={['top']}>
             <ScreenHeader title={title} />
 
             <Stepper steps={STEPS} current={current} done={done} onChange={setCurrent}>
@@ -106,6 +143,8 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
                     onLearnedAll={addAll}
                 />
             </Stepper>
+
+            <FloatingBar items={barItems} />
 
             {/* ویرایش کلمات */}
             <Modal visible={editOpen} animationType="slide" onRequestClose={() => setEditOpen(false)}>

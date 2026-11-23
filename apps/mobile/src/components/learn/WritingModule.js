@@ -1,12 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+} from 'react-native';
 
 import { shuffle } from '@/leitner';
-import { stopSpeaking } from '@/speech';
+import { speak, stopSpeaking } from '@/speech';
 import { colors } from '@/theme';
 import Button from '@/components/Button';
-import ProgressBar from '@/components/ProgressBar';
-import SpeakButton from '@/components/SpeakButton';
+import SwipeCards, { findNext } from './SwipeCards';
 import { ModuleDone, ModuleEmpty } from './shared';
 
 const makeItem = (word) => ({ id: Math.random().toString(36).slice(2), word });
@@ -16,14 +23,18 @@ const blanks = (en) => en.split('').map((c) => (c === ' ' ? '\u00A0' : '_')).joi
 
 /**
  * قدم «نوشتن»: معنی فارسی را می‌بیند و کلمه انگلیسی را تایپ می‌کند
+ * هر کلمه یک کارت است؛ کشیدن به چپ = بعدی، کشیدن به راست = قبلی.
  */
 export default function WritingModule({ words, onNext, onPrev, onRestart, onComplete }) {
-    const [queue, setQueue] = useState(() => shuffle(words).map(makeItem));
+    const [items] = useState(() => shuffle(words).map(makeItem));
+    const [index, setIndex] = useState(0);
+    const [solved, setSolved] = useState(() => new Set());
     const [text, setText] = useState('');
     const [status, setStatus] = useState('idle'); // idle | correct | wrong
-    const [correct, setCorrect] = useState(0);
     const [missed, setMissed] = useState([]);
+    const [finished, setFinished] = useState(false);
     const timer = useRef(null);
+    const cards = useRef(null);
 
     useEffect(
         () => () => {
@@ -33,7 +44,6 @@ export default function WritingModule({ words, onNext, onPrev, onRestart, onComp
         []
     );
 
-    const finished = words.length > 0 && queue.length === 0;
     useEffect(() => {
         if (finished) onComplete?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,66 +62,95 @@ export default function WritingModule({ words, onNext, onPrev, onRestart, onComp
         );
     }
 
-    const current = queue[0];
+    const current = items[index];
+    const wid = current.word.id;
+    const isSolved = solved.has(wid);
+    const idle = status === 'idle' && !isSolved;
+    // کارت حل‌شده با رفت‌وبرگشت، پاسخ درست را نشان می‌دهد
+    const shownText = isSolved ? current.word.en : text;
+    const shownStatus = isSolved ? 'correct' : status;
 
-    const advance = (requeue) => {
-        const rest = queue.slice(1);
-        if (requeue) rest.push(makeItem(current.word));
-        else setCorrect((c) => c + 1);
-        setQueue(rest);
+    // رفتن به کارت دیگر: وضعیت کارت قبلی پاک می‌شود
+    const go = (i) => {
+        clearTimeout(timer.current);
+        timer.current = null;
         setText('');
         setStatus('idle');
+        setIndex(i);
     };
 
     const check = () => {
-        if (status !== 'idle' || !text.trim()) return;
+        if (!idle || !text.trim()) return;
         if (norm(text) === norm(current.word.en)) {
+            const nextSolved = new Set(solved).add(wid);
+            setSolved(nextSolved);
             setStatus('correct');
-            timer.current = setTimeout(() => advance(false), 800);
+            timer.current = setTimeout(() => {
+                timer.current = null;
+                if (nextSolved.size === items.length) {
+                    setFinished(true);
+                    return;
+                }
+                const nx = findNext(items.length, index, (i) => nextSolved.has(items[i].word.id));
+                if (nx >= 0) cards.current?.goTo(nx);
+            }, 800);
         } else {
             setStatus('wrong');
-            setMissed((m) => (m.includes(current.word.id) ? m : [...m, current.word.id]));
+            setMissed((m) => (m.includes(wid) ? m : [...m, wid]));
         }
+    };
+
+    // بعد از جواب غلط: کارت پاک می‌شود و به کارت تمام‌نشده بعدی می‌رود (اگر نبود همین‌جا می‌ماند)
+    const continueAfterWrong = () => {
+        setText('');
+        setStatus('idle');
+        const nx = findNext(items.length, index, (i) => solved.has(items[i].word.id));
+        if (nx >= 0) cards.current?.goTo(nx);
     };
 
     return (
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <ScrollView contentContainerStyle={styles.root} keyboardShouldPersistTaps="handled">
-                <ProgressBar value={correct / words.length} />
+                <SwipeCards ref={cards} count={items.length} index={index} onChange={go}>
+                    <Text style={styles.question}>این کلمه را به انگلیسی بنویس</Text>
+                    <Pressable
+                        onPress={() => speak(current.word.en)}
+                        accessibilityRole="button"
+                        accessibilityLabel="پخش تلفظ"
+                        style={styles.faBox}
+                    >
+                        <Text style={styles.fa}>{current.word.fa}</Text>
+                    </Pressable>
+                    <Text style={styles.blanks}>{blanks(current.word.en)}</Text>
 
-                <Text style={styles.question}>این کلمه را به انگلیسی بنویس</Text>
-                <View style={styles.faBox}>
-                    <Text style={styles.fa}>{current.word.fa}</Text>
-                </View>
-                <SpeakButton text={current.word.en} size={20} style={styles.speak} />
-                <Text style={styles.blanks}>{blanks(current.word.en)}</Text>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            shownStatus === 'correct' && styles.inputCorrect,
+                            shownStatus === 'wrong' && styles.inputWrong,
+                        ]}
+                        value={shownText}
+                        onChangeText={(t) => idle && setText(t)}
+                        onSubmitEditing={check}
+                        editable={!isSolved}
+                        placeholder="کلمه را بنویس"
+                        placeholderTextColor={colors.sub}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        spellCheck={false}
+                        autoFocus
+                        returnKeyType="done"
+                    />
 
-                <TextInput
-                    style={[
-                        styles.input,
-                        status === 'correct' && styles.inputCorrect,
-                        status === 'wrong' && styles.inputWrong,
-                    ]}
-                    value={text}
-                    onChangeText={(t) => status === 'idle' && setText(t)}
-                    onSubmitEditing={check}
-                    placeholder="کلمه را بنویس"
-                    placeholderTextColor={colors.sub}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    spellCheck={false}
-                    autoFocus
-                    returnKeyType="done"
-                />
-
-                {status === 'wrong' ? (
-                    <>
-                        <Text style={styles.answer}>{`پاسخ درست: ${current.word.en}`}</Text>
-                        <Button title="ادامه" onPress={() => advance(true)} />
-                    </>
-                ) : (
-                    <Button title="بررسی" disabled={!text.trim() || status !== 'idle'} onPress={check} />
-                )}
+                    {status === 'wrong' && !isSolved ? (
+                        <>
+                            <Text style={styles.answer}>{`پاسخ درست: ${current.word.en}`}</Text>
+                            <Button title="ادامه" onPress={continueAfterWrong} />
+                        </>
+                    ) : (
+                        <Button title="بررسی" disabled={!text.trim() || !idle} onPress={check} />
+                    )}
+                </SwipeCards>
             </ScrollView>
         </KeyboardAvoidingView>
     );
@@ -119,14 +158,13 @@ export default function WritingModule({ words, onNext, onPrev, onRestart, onComp
 
 const styles = StyleSheet.create({
     flex: { flex: 1 },
-    root: { padding: 20, gap: 12 },
-    question: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 12 },
-    faBox: { backgroundColor: colors.card, borderRadius: 18, paddingVertical: 24, paddingHorizontal: 16 },
+    root: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16 },
+    question: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 4 },
+    faBox: { backgroundColor: colors.bg, borderRadius: 18, paddingVertical: 24, paddingHorizontal: 16 },
     fa: { fontSize: 30, fontWeight: '700', color: colors.text, textAlign: 'center', writingDirection: 'rtl' },
-    speak: { alignSelf: 'center' },
     blanks: { fontSize: 22, letterSpacing: 2, color: colors.sub, textAlign: 'center', writingDirection: 'ltr' },
     input: {
-        backgroundColor: colors.card,
+        backgroundColor: colors.bg,
         borderRadius: 16,
         borderWidth: 2,
         borderColor: colors.border,

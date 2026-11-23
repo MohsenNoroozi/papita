@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useCatalog } from '@/context/CatalogContext';
@@ -12,7 +12,8 @@ import useSourceWords from '@/hooks/useSourceWords';
 import CollapsingHeader from '@/components/CollapsingHeader';
 import ScreenHeader from '@/components/ScreenHeader';
 import SelectionBar from '@/components/SelectionBar';
-import SourceActionBar, { ACTION_BAR_HEIGHT } from '@/components/SourceActionBar';
+import FloatingBar, { useFloatingBarSpace } from '@/components/FloatingBar';
+import DeckSizeMenu from '@/components/DeckSizeMenu';
 import WordRow from '@/components/WordRow';
 
 const TABS = [
@@ -103,6 +104,7 @@ export default function SourceScreen() {
         },
         [setDeckSize]
     );
+    const barSpace = useFloatingBarSpace(false);
 
     if (!source) {
         return (
@@ -169,28 +171,47 @@ export default function SourceScreen() {
             {isWordsTab && selecting && !menuOpen && (
                 <SelectionBar
                     count={sel.count}
-                    bottom={ACTION_BAR_HEIGHT + 6}
+                    bottom={barSpace + 6}
                     onSelectAll={() => selectAll(items.map((r) => r.id))}
                     onClear={clearSelection}
                 />
             )}
 
+            {isWordsTab && menuOpen && <Pressable style={StyleSheet.absoluteFill} onPress={onCloseMenu} />}
+
             {isWordsTab && (
-                <SourceActionBar
-                    learnTitle={learnCount > 0 ? `یادگیری (${learnCount})` : 'یادگیری'}
-                    learnDisabled={learnCount === 0}
-                    onLearn={onLearn}
-                    menuOpen={menuOpen}
-                    onToggleMenu={onToggleMenu}
-                    onCloseMenu={onCloseMenu}
-                    deckSize={deckSize}
-                    onChangeDeckSize={onChangeDeckSize}
-                    reviewTitle={reviewCount > 0 ? `مرور (${reviewCount})` : 'مرور'}
-                    reviewDisabled={reviewCount === 0}
-                    onReview={onReview}
-                    quizDisabled={words.length === 0}
-                    onQuiz={() => router.push(`/(session)/quiz?id=${source.id}`)}
+                <FloatingBar
+                    safeBottom={false}
+                    items={[
+                        {
+                            key: 'learn',
+                            icon: 'sparkles',
+                            label: learnCount > 0 ? `یادگیری (${learnCount})` : 'یادگیری',
+                            filled: true,
+                            disabled: learnCount === 0,
+                            onPress: onLearn,
+                            onLongPress: onToggleMenu, // نگه‌داشتن = انتخاب تعداد کلمات دسته
+                        },
+                        {
+                            key: 'review',
+                            icon: 'repeat',
+                            label: reviewCount > 0 ? `مرور (${reviewCount})` : 'مرور',
+                            disabled: reviewCount === 0,
+                            onPress: onReview,
+                        },
+                        {
+                            key: 'quiz',
+                            icon: 'extension-puzzle-outline',
+                            label: 'آزمون',
+                            disabled: words.length === 0,
+                            onPress: () => router.push(`/(session)/quiz?id=${source.id}`),
+                        },
+                    ]}
                 />
+            )}
+
+            {isWordsTab && menuOpen && (
+                <DeckSizeMenu style={{ bottom: barSpace + 6 }} value={deckSize} onSelect={onChangeDeckSize} />
             )}
         </View>
     );

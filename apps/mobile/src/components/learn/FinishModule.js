@@ -4,14 +4,14 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/theme';
 import Button from '@/components/Button';
 import SpeakButton from '@/components/SpeakButton';
-import { ModuleEmpty, StepNav } from './shared';
+import { ModuleEmpty } from './shared';
 
 /**
  * قدم «پایان»: همه کلمات زیر هم، و بعد از آن دکمه «همه را یاد گرفتم»
  * addCount: تعداد کلماتی که هنوز در جعبه نیستند
  * onLearnedAll: افزودن کلمات به جعبه ۱
  */
-export default function FinishModule({ words, addCount = 0, onLearnedAll, onPrev }) {
+export default function FinishModule({ words, addCount = 0, onLearnedAll }) {
     if (words.length === 0) return <ModuleEmpty />;
 
     return (
@@ -35,8 +35,6 @@ export default function FinishModule({ words, addCount = 0, onLearnedAll, onPrev
             {addCount === 0 ? (
                 <Text style={styles.note}>همه این کلمات قبلاً در جعبه‌ها هستند</Text>
             ) : null}
-
-            <StepNav onPrev={onPrev} />
         </ScrollView>
     );
 }

@@ -77,11 +77,11 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 0,
         right: 0,
-        top: (HEIGHT - 8) / 2,
+        top: (HEIGHT - 8) / 4,
     },
     dot: {
         position: 'absolute',
-        top: HEIGHT / 2,
+        top: HEIGHT / 3.3,
         borderWidth: 2,
     },
     dotOn: {

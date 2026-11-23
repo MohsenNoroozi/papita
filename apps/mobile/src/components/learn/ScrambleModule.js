@@ -6,8 +6,7 @@ import { shuffle } from '@/leitner';
 import { speak, stopSpeaking } from '@/speech';
 import { colors } from '@/theme';
 import Button from '@/components/Button';
-import ProgressBar from '@/components/ProgressBar';
-import SpeakButton from '@/components/SpeakButton';
+import SwipeCards, { findNext } from './SwipeCards';
 import { ModuleDone, ModuleEmpty } from './shared';
 
 // شناسه هر مهره = اندیس حرف در کلمه اصلی (بدون فاصله)
@@ -23,15 +22,19 @@ function makeItem(word) {
 
 /**
  * قدم «کلمات درهم»: حروف را به ترتیب درست بچین
+ * هر کلمه یک کارت است؛ کشیدن به چپ = بعدی، کشیدن به راست = قبلی.
  */
 export default function ScrambleModule({ words, onNext, onPrev, onRestart, onComplete }) {
     const { autoSpeak } = useSettings();
-    const [queue, setQueue] = useState(() => shuffle(words).map(makeItem));
+    const [items] = useState(() => shuffle(words).map(makeItem));
+    const [index, setIndex] = useState(0);
+    const [solved, setSolved] = useState(() => new Set());
     const [placed, setPlaced] = useState([]); // شناسه مهره‌ها به ترتیب قرارگیری
     const [status, setStatus] = useState('idle'); // idle | correct | wrong | revealed
-    const [correct, setCorrect] = useState(0);
     const [missed, setMissed] = useState([]);
+    const [finished, setFinished] = useState(false);
     const timer = useRef(null);
+    const cards = useRef(null);
 
     useEffect(
         () => () => {
@@ -41,7 +44,6 @@ export default function ScrambleModule({ words, onNext, onPrev, onRestart, onCom
         []
     );
 
-    const finished = words.length > 0 && queue.length === 0;
     useEffect(() => {
         if (finished) onComplete?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,36 +62,52 @@ export default function ScrambleModule({ words, onNext, onPrev, onRestart, onCom
         );
     }
 
-    const current = queue[0];
+    const current = items[index];
+    const wid = current.word.id;
     const n = current.letters.length;
+    const isSolved = solved.has(wid);
+    const idle = status === 'idle' && !isSolved;
+    // کارت حل‌شده با رفت‌وبرگشت، پاسخ درست را نشان می‌دهد
+    const shownPlaced = isSolved ? current.letters.map((_, i) => i) : placed;
+    const shownStatus = isSolved ? 'correct' : status;
 
-    const advance = (requeue) => {
-        const rest = queue.slice(1);
-        if (requeue) rest.push(makeItem(current.word));
-        else setCorrect((c) => c + 1);
-        setQueue(rest);
+    // رفتن به کارت دیگر: وضعیت کارت قبلی پاک می‌شود
+    const go = (i) => {
+        clearTimeout(timer.current);
+        timer.current = null;
         setPlaced([]);
         setStatus('idle');
+        setIndex(i);
     };
 
-    const markMissed = () =>
-        setMissed((m) => (m.includes(current.word.id) ? m : [...m, current.word.id]));
+    const markMissed = () => setMissed((m) => (m.includes(wid) ? m : [...m, wid]));
 
     const place = (id) => {
-        if (status !== 'idle' || placed.length >= n || placed.includes(id)) return;
+        if (!idle || placed.length >= n || placed.includes(id)) return;
         const next = [...placed, id];
         setPlaced(next);
         if (next.length < n) return;
 
         const guess = next.map((i) => current.letters[i]).join('').toLowerCase();
         if (guess === current.letters.join('').toLowerCase()) {
+            const nextSolved = new Set(solved).add(wid);
+            setSolved(nextSolved);
             setStatus('correct');
             if (autoSpeak) speak(current.word.en);
-            timer.current = setTimeout(() => advance(false), 900);
+            timer.current = setTimeout(() => {
+                timer.current = null;
+                if (nextSolved.size === items.length) {
+                    setFinished(true);
+                    return;
+                }
+                const nx = findNext(items.length, index, (i) => nextSolved.has(items[i].word.id));
+                if (nx >= 0) cards.current?.goTo(nx);
+            }, 900);
         } else {
             setStatus('wrong');
             markMissed();
             timer.current = setTimeout(() => {
+                timer.current = null;
                 setPlaced([]);
                 setStatus('idle');
             }, 900);
@@ -97,17 +115,21 @@ export default function ScrambleModule({ words, onNext, onPrev, onRestart, onCom
     };
 
     const unplace = (k) => {
-        if (status !== 'idle') return;
+        if (!idle) return;
         setPlaced(placed.filter((_, i) => i !== k));
     };
 
-    // نمایش پاسخ؛ کلمه بعداً دوباره پرسیده می‌شود
+    // نمایش پاسخ؛ بعد از آن کارت پاک می‌شود و هنوز حل‌نشده است
     const reveal = () => {
-        if (status !== 'idle') return;
+        if (!idle) return;
         setPlaced(current.letters.map((_, i) => i)); // ترتیب اصلی = اندیس‌ها
         setStatus('revealed');
         markMissed();
-        timer.current = setTimeout(() => advance(true), 1400);
+        timer.current = setTimeout(() => {
+            timer.current = null;
+            setPlaced([]);
+            setStatus('idle');
+        }, 1400);
     };
 
     // خانه‌های پاسخ (فاصله بین کلمات چندبخشی مثل "ice pop" حفظ می‌شود)
@@ -116,7 +138,7 @@ export default function ScrambleModule({ words, onNext, onPrev, onRestart, onCom
         if (ch === ' ') return <View key={`gap${i}`} style={styles.gap} />;
         k += 1;
         const pos = k;
-        const id = placed[pos];
+        const id = shownPlaced[pos];
         return (
             <Pressable
                 key={`slot${i}`}
@@ -124,8 +146,8 @@ export default function ScrambleModule({ words, onNext, onPrev, onRestart, onCom
                 style={[
                     styles.slot,
                     id != null && styles.slotFilled,
-                    (status === 'correct' || status === 'revealed') && styles.slotCorrect,
-                    status === 'wrong' && styles.slotWrong,
+                    (shownStatus === 'correct' || shownStatus === 'revealed') && styles.slotCorrect,
+                    shownStatus === 'wrong' && styles.slotWrong,
                 ]}
             >
                 <Text style={styles.slotText}>{id != null ? current.letters[id] : ''}</Text>
@@ -135,51 +157,55 @@ export default function ScrambleModule({ words, onNext, onPrev, onRestart, onCom
 
     return (
         <ScrollView contentContainerStyle={styles.root}>
-            <ProgressBar value={correct / words.length} />
-            <Text style={styles.question}>حروف را به ترتیب بچین</Text>
+            <SwipeCards ref={cards} count={items.length} index={index} onChange={go}>
+                <Text style={styles.question}>حروف را به ترتیب بچین</Text>
 
-            <View style={styles.faBox}>
-                <Text style={styles.fa}>{current.word.fa}</Text>
-            </View>
-            <SpeakButton text={current.word.en} size={20} style={styles.speak} />
+                <Pressable
+                    onPress={() => speak(current.word.en)}
+                    accessibilityRole="button"
+                    accessibilityLabel="پخش تلفظ"
+                    style={styles.faBox}
+                >
+                    <Text style={styles.fa}>{current.word.fa}</Text>
+                </Pressable>
 
-            <View style={styles.slotsRow}>{slots}</View>
+                <View style={styles.slotsRow}>{slots}</View>
 
-            <View style={styles.tilesRow}>
-                {current.tiles.map((t) => {
-                    const used = placed.includes(t.id);
-                    return (
-                        <Pressable
-                            key={t.id}
-                            onPress={() => place(t.id)}
-                            disabled={used}
-                            style={[styles.tile, used && styles.tileUsed]}
-                        >
-                            <Text style={styles.tileText}>{t.ch}</Text>
-                        </Pressable>
-                    );
-                })}
-            </View>
+                <View style={styles.tilesRow}>
+                    {current.tiles.map((t) => {
+                        const used = shownPlaced.includes(t.id);
+                        return (
+                            <Pressable
+                                key={t.id}
+                                onPress={() => place(t.id)}
+                                disabled={used}
+                                style={[styles.tile, used && styles.tileUsed]}
+                            >
+                                <Text style={styles.tileText}>{t.ch}</Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
 
-            <View style={styles.actions}>
-                <Button
-                    title="پاک کردن"
-                    variant="soft"
-                    disabled={placed.length === 0 || status !== 'idle'}
-                    onPress={() => setPlaced([])}
-                />
-                <Button title="نمایش پاسخ" variant="ghost" disabled={status !== 'idle'} onPress={reveal} />
-            </View>
+                <View style={styles.actions}>
+                    <Button
+                        title="پاک کردن"
+                        variant="soft"
+                        disabled={placed.length === 0 || !idle}
+                        onPress={() => setPlaced([])}
+                    />
+                    <Button title="نمایش پاسخ" variant="ghost" disabled={!idle} onPress={reveal} />
+                </View>
+            </SwipeCards>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    root: { padding: 20, gap: 14 },
-    question: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 8 },
-    faBox: { backgroundColor: colors.card, borderRadius: 18, paddingVertical: 22, paddingHorizontal: 16 },
+    root: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16 },
+    question: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 4 },
+    faBox: { backgroundColor: colors.bg, borderRadius: 18, paddingVertical: 22, paddingHorizontal: 16 },
     fa: { fontSize: 28, fontWeight: '700', color: colors.text, textAlign: 'center', writingDirection: 'rtl' },
-    speak: { alignSelf: 'center' },
     slotsRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -195,7 +221,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 2,
         borderColor: colors.border,
-        backgroundColor: colors.card,
+        backgroundColor: colors.bg,
         alignItems: 'center',
         justifyContent: 'center',
     },

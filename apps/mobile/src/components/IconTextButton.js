@@ -9,6 +9,7 @@ export default function IconTextButton({
                                            icon,
                                            label,
                                            onPress,
+                                           onLongPress,
                                            disabled,
                                            filled,
                                            muted,
@@ -19,6 +20,7 @@ export default function IconTextButton({
     return (
         <Pressable
             onPress={onPress}
+            onLongPress={onLongPress}
             disabled={disabled}
             accessibilityRole="button"
             accessibilityLabel={label}

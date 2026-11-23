@@ -44,25 +44,17 @@ export function ModuleEmpty() {
 }
 
 // صفحه پایان یک قدم؛ دکمه‌ها به پایین صفحه چسبیده‌اند
-export function ModuleDone({ title = 'آفرین!', subtitle, onNext, onPrev, onRestart }) {
+export function ModuleDone({ title = 'آفرین!', subtitle }) {
     return (
-        <View style={styles.flex}>
-            <View style={styles.center}>
-                <Text style={styles.emoji}>🎉</Text>
-                <Text style={styles.title}>{title}</Text>
-                {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
-            </View>
-            <StepNav onNext={onNext} onPrev={onPrev} onRestart={onRestart} style={styles.bottomNav} />
+        <View style={styles.center}>
+            <Text style={styles.emoji}>🎉</Text>
+            <Text style={styles.title}>{title}</Text>
+            {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    flex: { flex: 1 },
-    nav: { alignSelf: 'stretch', gap: 8 },
-    row: { flexDirection: 'row', gap: 8 },
-    half: { flex: 1 },
-    bottomNav: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
     empty: { fontSize: 16, color: colors.sub },
     emoji: { fontSize: 56 },

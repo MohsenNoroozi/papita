@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useSettings } from '@/context/SettingsContext';
 import { shuffle } from '@/leitner';
 import { speak, stopSpeaking } from '@/speech';
 import { colors } from '@/theme';
-import FadeIn from '@/components/FadeIn';
-import ProgressBar from '@/components/ProgressBar';
-import SpeakButton from '@/components/SpeakButton';
+import SwipeCards, { findNext } from './SwipeCards';
 import { ModuleDone, ModuleEmpty } from './shared';
 
 // گزینه‌های غلط: اول از کلمات همین دسته، بعد از pool (کل کاتالوگ)
@@ -25,15 +24,21 @@ function makeItem(word, words, pool) {
 
 /**
  * قدم «۴ گزینه‌ای»: معنی فارسی کلمه را انتخاب کن
+ * هر کلمه یک کارت است؛ کشیدن به چپ = بعدی، کشیدن به راست = قبلی.
+ * جواب غلط به کلمه بعد نمی‌رود؛ می‌توان گزینه دیگری را امتحان کرد.
  * words: کلمات دسته | pool: همه کلمات کاتالوگ (برای گزینه‌های غلط)
  */
 export default function MultipleChoiceModule({ words, pool = [], onNext, onPrev, onRestart, onComplete }) {
     const { autoSpeak } = useSettings();
-    const [queue, setQueue] = useState(() => shuffle(words).map((w) => makeItem(w, words, pool)));
-    const [correct, setCorrect] = useState(0);
-    const [selected, setSelected] = useState(null);
-    const [missed, setMissed] = useState([]);
+    const [items] = useState(() => shuffle(words).map((w) => makeItem(w, words, pool)));
+    const [index, setIndex] = useState(0);
+    const [solved, setSolved] = useState(() => new Set()); // id کلمه‌های درست‌جواب‌داده‌شده
+    const [missed, setMissed] = useState([]); // id کلماتی که حداقل یک‌بار غلط جواب داده شده‌اند
+    const [wrongOpt, setWrongOpt] = useState(null); // گزینه غلطِ انتخاب‌شده (چند لحظه نمایش داده می‌شود)
+    const hasMoved = useRef(false); // تا اولین تغییر کارت، تلفظ خودکار نداریم
+    const [finished, setFinished] = useState(false);
     const timer = useRef(null);
+    const cards = useRef(null);
 
     useEffect(
         () => () => {
@@ -43,16 +48,15 @@ export default function MultipleChoiceModule({ words, pool = [], onNext, onPrev,
         []
     );
 
-    const finished = words.length > 0 && queue.length === 0;
     useEffect(() => {
         if (finished) onComplete?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
-    // تلفظ خودکار کلمه هر سؤال
-    const currentId = queue[0]?.id;
+    // تلفظ خودکار کلمه هر کارت (به‌جز کارت اول هنگام ورود به صفحه)
+    const currentId = items[index]?.id;
     useEffect(() => {
-        if (autoSpeak && queue[0]) speak(queue[0].word.en);
+        if (hasMoved.current && autoSpeak && items[index]) speak(items[index].word.en);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentId]);
 
@@ -69,43 +73,65 @@ export default function MultipleChoiceModule({ words, pool = [], onNext, onPrev,
         );
     }
 
-    const current = queue[0];
+    const current = items[index];
+    const wid = current.word.id;
+    const isSolved = solved.has(wid);
+
+    // رفتن به کارت دیگر (با کشیدن، نقطه‌ها یا خودکار)
+    const go = (i) => {
+        clearTimeout(timer.current);
+        timer.current = null;
+        hasMoved.current = true;
+        setWrongOpt(null);
+        setIndex(i);
+    };
 
     const choose = (opt) => {
-        if (selected !== null) return;
-        const isCorrect = opt.id === current.word.id;
-        setSelected(opt.id);
-        timer.current = setTimeout(
-            () => {
-                const rest = queue.slice(1);
-                if (isCorrect) {
-                    setCorrect((c) => c + 1);
-                } else {
-                    rest.push(makeItem(current.word, words, pool)); // بعداً دوباره پرسیده می‌شود
-                    setMissed((m) => (m.includes(current.word.id) ? m : [...m, current.word.id]));
+        if (isSolved || timer.current) return;
+
+        if (opt.id === wid) {
+            const nextSolved = new Set(solved).add(wid);
+            setSolved(nextSolved);
+            // بعد از جواب درست، به کارت تمام‌نشده بعدی می‌رود
+            timer.current = setTimeout(() => {
+                timer.current = null;
+                if (nextSolved.size === items.length) {
+                    setFinished(true);
+                    return;
                 }
-                setSelected(null);
-                setQueue(rest);
-            },
-            isCorrect ? 700 : 1400
-        );
+                const n = findNext(items.length, index, (i) => nextSolved.has(items[i].word.id));
+                if (n >= 0) cards.current?.goTo(n);
+            }, 700);
+        } else {
+            // جواب غلط: روی همین کارت می‌ماند و بعد از چند لحظه گزینه از حالت انتخاب درمی‌آید
+            setWrongOpt(opt.id);
+            setMissed((m) => (m.includes(wid) ? m : [...m, wid]));
+            timer.current = setTimeout(() => {
+                timer.current = null;
+                setWrongOpt(null);
+            }, 900);
+        }
     };
 
     const stateOf = (opt) => {
-        if (selected === null) return 'idle';
-        if (opt.id === current.word.id) return 'correct';
-        if (opt.id === selected) return 'wrong';
-        return 'dim';
+        if (isSolved) return opt.id === wid ? 'correct' : 'dim';
+        if (wrongOpt === opt.id) return 'wrong';
+        return 'idle';
     };
 
     return (
         <ScrollView contentContainerStyle={styles.root}>
-            <ProgressBar value={correct / words.length} />
-            <FadeIn key={current.id}>
+            <SwipeCards ref={cards} count={items.length} index={index} onChange={go}>
                 <Text style={styles.question}>معنی این کلمه چیست؟</Text>
                 <View style={styles.promptRow}>
-                    <Text style={styles.prompt}>{current.word.en}</Text>
-                    <SpeakButton text={current.word.en} size={20} />
+                    <Text
+                        onPress={() => speak(current.word.en)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`پخش تلفظ ${current.word.en}`}
+                        style={styles.prompt}
+                    >
+                        {current.word.en}
+                    </Text>
                 </View>
 
                 <View style={styles.options}>
@@ -123,29 +149,36 @@ export default function MultipleChoiceModule({ words, pool = [], onNext, onPrev,
                                 ]}
                             >
                                 <Text style={styles.optionText}>{opt.fa}</Text>
+                                {st === 'correct' && (
+                                    <Ionicons name="checkmark-circle" size={32} color={colors.success} style={styles.mark} />
+                                )}
+                                {st === 'wrong' && (
+                                    <Ionicons name="close-circle" size={32} color={colors.danger} style={styles.mark} />
+                                )}
                             </Pressable>
                         );
                     })}
                 </View>
-            </FadeIn>
+            </SwipeCards>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    root: { padding: 20, gap: 8 },
-    question: { fontSize: 16, color: colors.sub, textAlign: 'center', marginTop: 16 },
-    promptRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginVertical: 14 },
+    root: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 4 },
+    question: { fontSize: 16, color: colors.sub, textAlign: 'center' },
+    promptRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
     prompt: { fontSize: 38, fontWeight: '800', color: colors.text, textAlign: 'center', flexShrink: 1 },
-    options: { gap: 12, marginTop: 8 },
+    options: { gap: 8, marginTop: 8 },
     option: {
-        backgroundColor: colors.card,
+        backgroundColor: colors.bg,
         borderRadius: 18,
         paddingVertical: 18,
         paddingHorizontal: 16,
         borderWidth: 2,
         borderColor: 'transparent',
     },
+    mark: { position: 'absolute', left: 14, top: '50%' },
     optionText: { fontSize: 20, fontWeight: '600', color: colors.text, textAlign: 'center' },
     optCorrect: { backgroundColor: colors.successSoft, borderColor: colors.success },
     optWrong: { backgroundColor: colors.dangerSoft, borderColor: colors.danger },
