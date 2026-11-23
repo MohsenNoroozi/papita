@@ -57,14 +57,12 @@ export default function SourceScreen() {
     // هر واژه انتخاب‌شده می‌تواند وارد یادگیری یا مرور شود.
     const picked = useMemo(() => {
         const learn = [];
-        const review = [];
         for (const wid of sel.selected) {
             const row = byId.get(wid);
             if (!row) continue;
             learn.push(wid);
-            review.push(wid);
         }
-        return { learn, review };
+        return { learn };
     }, [sel.selected, byId]);
 
     const { active: selecting, selected } = sel;
@@ -128,7 +126,7 @@ export default function SourceScreen() {
     };
     const onReview = () => {
         setMenuOpen(false);
-        const extra = selecting ? `&ids=${picked.review.join(',')}` : '';
+        const extra = selecting ? `&ids=${[...sel.selected].join(',')}` : '';
         router.push(`/(review)/review?id=${source.id}${extra}`);
     };
 

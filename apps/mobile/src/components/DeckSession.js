@@ -48,6 +48,7 @@ export default function DeckSession({
                                         onExit,
                                         renderEmpty,
                                         canApplyReview = () => true,
+                                        keepUnboxedReviewWords = false,
                                         showBack = true,
                                     }) {
     const router = useRouter();
@@ -103,13 +104,13 @@ export default function DeckSession({
     // مرور: کلمه‌ای که در این فاصله از جعبه‌ها حذف شده (مثلاً در صفحه یادگیری یا با پاک‌کردن پیشرفت)
     // نباید در دسته بماند
     useEffect(() => {
-        if (!isReview) return;
+        if (!isReview || keepUnboxedReviewWords) return;
         const alive = deck.filter((w) => progress[w.id]);
         if (alive.length === deck.length) return;
         setDeck(alive);
         setIdx((i) => Math.min(i, Math.max(alive.length - 1, 0)));
         setDeckKey((k) => k + 1); // کارت فعلی دوباره ساخته شود
-    }, [isReview, deck, progress]);
+    }, [isReview, keepUnboxedReviewWords, deck, progress]);
 
     const applyNewDeck = (d) => {
         setDeck(d);

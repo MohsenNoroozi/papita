@@ -55,6 +55,7 @@ export default function ReviewScreen() {
             mode="review"
             title="مرور"
             pick={pick}
+            keepUnboxedReviewWords={selectedIds != null}
             canApplyReview={(word) => isDue(getProgress()[word.id])}
             quizHref={(list) => `/(session)/quiz?ids=${list.join(',')}`}
             onExit={() => (hasScope ? router.back() : router.navigate('/'))}
