@@ -44,7 +44,13 @@
           }
         }
       ],
-      "expo-web-browser"
+      ["expo-speech-recognition", {
+        "microphonePermission": "برای تلفظ کلمات به میکروفون نیاز است",
+        "speechRecognitionPermission": "برای تشخیص تلفظ شما",
+        "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+      }],
+      "expo-web-browser",
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true,

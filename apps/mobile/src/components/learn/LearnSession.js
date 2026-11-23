@@ -5,16 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useCatalog } from '@/context/CatalogContext';
 import { useProgress } from '@/context/ProgressContext';
-import { colors } from '@/theme';
 import Button from '@/components/Button';
 import ScreenHeader from '@/components/ScreenHeader';
 import Stepper from '@/components/Stepper';
 import IntroModule from './IntroModule';
 import MultipleChoiceModule from './MultipleChoiceModule';
-import WritingModule from './WritingModule';
 import MatchingModule from './MatchingModule';
 import ScrambleModule from './ScrambleModule';
 import FinishModule from './FinishModule';
+import SpeakingModule from './SpeakingModule';
+import { colors } from '@/theme';
 
 import { stopSpeaking } from '@/speech';
 import { useSettings } from '@/context/SettingsContext';
@@ -35,7 +35,7 @@ export const STEPS = [
     { key: 'choice', label: 'یادآوری', Component: MultipleChoiceModule },
     { key: 'match', label: 'تطبیق', Component: MatchingModule },
     { key: 'scramble', label: 'تثبیت', Component: ScrambleModule },
-    { key: 'write', label: 'تسلط', Component: WritingModule },
+    { key: 'speak', label: 'تسلط', Component: SpeakingModule },
     { key: 'finish', label: 'پایان', Component: FinishModule },
 ];
 
@@ -145,9 +145,7 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
                     onComplete={() => markDone(step.key)}
                     onRestart={() => restart(step.key)}
                     saved={saves.current[step.key]}
-                    onSave={(v) => {
-                        saves.current[step.key] = v;
-                    }}
+                    onSave={v => saves.current[step.key] = v}
                     addCount={toAdd.length}
                     onLearnedAll={addAll}
                 />
