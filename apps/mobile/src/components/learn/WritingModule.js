@@ -13,8 +13,9 @@ import { shuffle } from '@/leitner';
 import { speak, stopSpeaking } from '@/speech';
 import { colors } from '@/theme';
 import Button from '@/components/Button';
-import SwipeCards, { findNext } from './SwipeCards';
-import { ModuleDone, ModuleEmpty } from './shared';
+import StepResult from './StepResult';
+import SwipeCards from './SwipeCards';
+import { ModuleEmpty } from './shared';
 
 const makeItem = (word) => ({ id: Math.random().toString(36).slice(2), word });
 const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -22,19 +23,28 @@ const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 const blanks = (en) => en.split('').map((c) => (c === ' ' ? '\u00A0' : '_')).join(' ');
 
 /**
- * قدم «نوشتن»: معنی فارسی را می‌بیند و کلمه انگلیسی را تایپ می‌کند
- * هر کلمه یک کارت است؛ کشیدن به چپ = بعدی، کشیدن به راست = قبلی.
+ * قدم «تسلط» (نوشتن): معنی فارسی را می‌بیند و کلمه انگلیسی را تایپ می‌کند
+ * هر کلمه یک کارت است + یک صفحه پایانی؛ کشیدن به راست = بعدی، کشیدن به چپ = قبلی.
+ * saved / onSave: ذخیره پیشرفت تا با رفتن به مرحله دیگر از بین نرود
  */
-export default function WritingModule({ words, onNext, onPrev, onRestart, onComplete }) {
-    const [items] = useState(() => shuffle(words).map(makeItem));
-    const [index, setIndex] = useState(0);
-    const [solved, setSolved] = useState(() => new Set());
+export default function WritingModule({ words, saved, onSave, onComplete }) {
+    const onSaveRef = useRef(onSave);
+    onSaveRef.current = onSave;
+
+    const [items] = useState(() => saved?.items ?? shuffle(words).map(makeItem));
+    const [solved, setSolved] = useState(() => new Set(saved?.solved ?? []));
+    const [missed, setMissed] = useState(() => saved?.missed ?? []);
+    const last = useRef(saved?.last ?? -1); // اندیس آخرین کارت حل‌شده
+    // بازگشت: یک کارت بعد از آخرین جواب درست (یا صفحه پایانی)
+    const [index, setIndex] = useState(() => Math.min(last.current + 1, items.length));
     const [text, setText] = useState('');
     const [status, setStatus] = useState('idle'); // idle | correct | wrong
-    const [missed, setMissed] = useState([]);
-    const [finished, setFinished] = useState(false);
     const timer = useRef(null);
     const cards = useRef(null);
+
+    const total = items.length;
+    const complete = total > 0 && solved.size === total;
+    const isResult = total > 0 && index >= total;
 
     useEffect(
         () => () => {
@@ -45,30 +55,15 @@ export default function WritingModule({ words, onNext, onPrev, onRestart, onComp
     );
 
     useEffect(() => {
-        if (finished) onComplete?.();
+        onSaveRef.current?.({ items, solved: [...solved], missed, last: last.current });
+    }, [items, solved, missed]);
+
+    useEffect(() => {
+        if (complete) onComplete?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished]);
+    }, [complete]);
 
     if (words.length === 0) return <ModuleEmpty />;
-
-    if (finished) {
-        return (
-            <ModuleDone
-                subtitle={`${words.length - missed.length} از ${words.length} کلمه را بار اول درست نوشتی`}
-                onNext={onNext}
-                onPrev={onPrev}
-                onRestart={onRestart}
-            />
-        );
-    }
-
-    const current = items[index];
-    const wid = current.word.id;
-    const isSolved = solved.has(wid);
-    const idle = status === 'idle' && !isSolved;
-    // کارت حل‌شده با رفت‌وبرگشت، پاسخ درست را نشان می‌دهد
-    const shownText = isSolved ? current.word.en : text;
-    const shownStatus = isSolved ? 'correct' : status;
 
     // رفتن به کارت دیگر: وضعیت کارت قبلی پاک می‌شود
     const go = (i) => {
@@ -79,20 +74,21 @@ export default function WritingModule({ words, onNext, onPrev, onRestart, onComp
         setIndex(i);
     };
 
+    const current = isResult ? null : items[index];
+    const wid = current?.word.id;
+    const isSolved = !!current && solved.has(wid);
+    const idle = !!current && status === 'idle' && !isSolved;
+
     const check = () => {
         if (!idle || !text.trim()) return;
         if (norm(text) === norm(current.word.en)) {
             const nextSolved = new Set(solved).add(wid);
+            last.current = index;
             setSolved(nextSolved);
             setStatus('correct');
             timer.current = setTimeout(() => {
                 timer.current = null;
-                if (nextSolved.size === items.length) {
-                    setFinished(true);
-                    return;
-                }
-                const nx = findNext(items.length, index, (i) => nextSolved.has(items[i].word.id));
-                if (nx >= 0) cards.current?.goTo(nx);
+                cards.current?.goTo(nextSolved.size === total ? total : index + 1);
             }, 800);
         } else {
             setStatus('wrong');
@@ -100,58 +96,91 @@ export default function WritingModule({ words, onNext, onPrev, onRestart, onComp
         }
     };
 
-    // بعد از جواب غلط: کارت پاک می‌شود و به کارت تمام‌نشده بعدی می‌رود (اگر نبود همین‌جا می‌ماند)
+    // بعد از جواب غلط: کارت پاک می‌شود و به کارت بعدی (یا صفحه پایانی) می‌رود
     const continueAfterWrong = () => {
-        setText('');
-        setStatus('idle');
-        const nx = findNext(items.length, index, (i) => solved.has(items[i].word.id));
-        if (nx >= 0) cards.current?.goTo(nx);
+        cards.current?.goTo(index + 1);
     };
+
+    const firstTry = items.filter((it) => solved.has(it.word.id) && !missed.includes(it.word.id)).length;
+    const unsolvedWords = items.filter((it) => !solved.has(it.word.id)).map((it) => it.word);
+    const missedWords = items.filter((it) => missed.includes(it.word.id)).map((it) => it.word);
+
+    let content;
+    if (isResult) {
+        content = (
+            <StepResult
+                complete={complete}
+                lines={[
+                    `${solved.size} از ${total} کلمه را درست نوشتی`,
+                    `${firstTry} از ${total} کلمه را بار اول درست نوشتی`,
+                ]}
+                sections={[
+                    { title: 'هنوز درست ننوشته‌ای', words: unsolvedWords },
+                    { title: 'نیاز به تمرین بیشتر', words: missedWords },
+                ]}
+            />
+        );
+    } else {
+        // کارت حل‌شده با رفت‌وبرگشت، پاسخ درست را نشان می‌دهد
+        const shownText = isSolved ? current.word.en : text;
+        const shownStatus = isSolved ? 'correct' : status;
+
+        content = (
+            <>
+                <Text style={styles.question}>این کلمه را به انگلیسی بنویس</Text>
+                <Pressable
+                    onPress={() => speak(current.word.en)}
+                    accessibilityRole="button"
+                    accessibilityLabel="پخش تلفظ"
+                    style={styles.faBox}
+                >
+                    <Text style={styles.fa}>{current.word.fa}</Text>
+                </Pressable>
+                <Text style={styles.blanks}>{blanks(current.word.en)}</Text>
+
+                <TextInput
+                    style={[
+                        styles.input,
+                        shownStatus === 'correct' && styles.inputCorrect,
+                        shownStatus === 'wrong' && styles.inputWrong,
+                    ]}
+                    value={shownText}
+                    onChangeText={(t) => idle && setText(t)}
+                    onSubmitEditing={check}
+                    editable={!isSolved}
+                    placeholder="کلمه را بنویس"
+                    placeholderTextColor={colors.sub}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    autoFocus
+                    returnKeyType="done"
+                />
+
+                {status === 'wrong' && !isSolved ? (
+                    <>
+                        <Text style={styles.answer}>{`پاسخ درست: ${current.word.en}`}</Text>
+                        <Button title="ادامه" onPress={continueAfterWrong} />
+                    </>
+                ) : (
+                    <Button title="بررسی" disabled={!text.trim() || !idle} onPress={check} />
+                )}
+            </>
+        );
+    }
 
     return (
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <ScrollView contentContainerStyle={styles.root} keyboardShouldPersistTaps="handled">
-                <SwipeCards ref={cards} count={items.length} index={index} onChange={go}>
-                    <Text style={styles.question}>این کلمه را به انگلیسی بنویس</Text>
-                    <Pressable
-                        onPress={() => speak(current.word.en)}
-                        accessibilityRole="button"
-                        accessibilityLabel="پخش تلفظ"
-                        style={styles.faBox}
-                    >
-                        <Text style={styles.fa}>{current.word.fa}</Text>
-                    </Pressable>
-                    <Text style={styles.blanks}>{blanks(current.word.en)}</Text>
-
-                    <TextInput
-                        style={[
-                            styles.input,
-                            shownStatus === 'correct' && styles.inputCorrect,
-                            shownStatus === 'wrong' && styles.inputWrong,
-                        ]}
-                        value={shownText}
-                        onChangeText={(t) => idle && setText(t)}
-                        onSubmitEditing={check}
-                        editable={!isSolved}
-                        placeholder="کلمه را بنویس"
-                        placeholderTextColor={colors.sub}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        spellCheck={false}
-                        autoFocus
-                        returnKeyType="done"
-                    />
-
-                    {status === 'wrong' && !isSolved ? (
-                        <>
-                            <Text style={styles.answer}>{`پاسخ درست: ${current.word.en}`}</Text>
-                            <Button title="ادامه" onPress={continueAfterWrong} />
-                        </>
-                    ) : (
-                        <Button title="بررسی" disabled={!text.trim() || !idle} onPress={check} />
-                    )}
+            <ScrollView
+                style={styles.flex}
+                contentContainerStyle={styles.root}
+                keyboardShouldPersistTaps="handled"
+            >
+                <SwipeCards ref={cards} count={total + 1} dotCount={total} index={index} onChange={go}>
+                    {content}
                 </SwipeCards>
             </ScrollView>
+
         </KeyboardAvoidingView>
     );
 }

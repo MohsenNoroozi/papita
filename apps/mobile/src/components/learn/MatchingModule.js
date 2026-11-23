@@ -23,17 +23,21 @@ function makeRounds(words) {
 
 /**
  * قدم «تطبیق»: هر کلمه انگلیسی را با معنی فارسی‌اش جفت کن
+ * saved / onSave: ذخیره پیشرفت (دورها، جفت‌های درست) تا با رفتن به مرحله دیگر از بین نرود
  */
-export default function MatchingModule({ words, onNext, onPrev, onRestart, onComplete }) {
+export default function MatchingModule({ words, saved, onSave, onNext, onPrev, onRestart, onComplete }) {
     const { autoSpeak } = useSettings();
-    const [rounds] = useState(() => makeRounds(words));
-    const [roundIdx, setRoundIdx] = useState(0);
-    const [matched, setMatched] = useState(() => new Set());
+    const onSaveRef = useRef(onSave);
+    onSaveRef.current = onSave;
+
+    const [rounds] = useState(() => saved?.rounds ?? makeRounds(words));
+    const [roundIdx, setRoundIdx] = useState(saved?.roundIdx ?? 0);
+    const [matched, setMatched] = useState(() => new Set(saved?.matched ?? []));
     const [selL, setSelL] = useState(null);
     const [selR, setSelR] = useState(null);
     const [wrong, setWrong] = useState(null); // { l, r }
-    const [mistakes, setMistakes] = useState(0);
-    const [finished, setFinished] = useState(false);
+    const [mistakes, setMistakes] = useState(saved?.mistakes ?? 0);
+    const [finished, setFinished] = useState(saved?.finished ?? false);
     const locked = useRef(false);
     const timer = useRef(null);
 
@@ -44,6 +48,20 @@ export default function MatchingModule({ words, onNext, onPrev, onRestart, onCom
         },
         []
     );
+
+    // ذخیره پیشرفت. اگر دور تمام شده ولی هنوز انیمیشن رفتن به دور بعد پخش نشده، همان حالت «دور بعد» ذخیره می‌شود
+    useEffect(() => {
+        const cur = rounds[roundIdx] ?? [];
+        const roundDone = cur.length > 0 && matched.size === cur.length;
+        const nextIdx = roundDone ? roundIdx + 1 : roundIdx;
+        onSaveRef.current?.({
+            rounds,
+            roundIdx: nextIdx,
+            matched: roundDone ? [] : [...matched],
+            mistakes,
+            finished: finished || (roundDone && nextIdx >= rounds.length),
+        });
+    }, [rounds, roundIdx, matched, mistakes, finished]);
 
     useEffect(() => {
         if (finished) onComplete?.();

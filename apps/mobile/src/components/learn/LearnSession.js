@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,15 +26,16 @@ import FloatingBar from '@/components/FloatingBar';
  *   onNext, onPrev         رفتن به قدم بعد/قبل (undefined اگر وجود ندارد)
  *   onComplete             اعلام کامل‌شدن قدم (برای تیک stepper)
  *   onRestart              اجرای مجدد همین قدم از ابتدا
+ *   saved, onSave          پیشرفت ذخیره‌شده قدم (تا با رفتن به قدم دیگر جواب‌های درست از بین نرود)
  *   addCount, onLearnedAll فقط FinishModule استفاده می‌کند
  * برای افزودن قدم جدید فقط یک خط به این آرایه اضافه کن.
  */
 export const STEPS = [
-    { key: 'intro', label: 'معرفی', Component: IntroModule },
-    { key: 'choice', label: '۴ گزینه‌ای', Component: MultipleChoiceModule },
+    { key: 'intro', label: 'آشنایی', Component: IntroModule },
+    { key: 'choice', label: 'یادآوری', Component: MultipleChoiceModule },
     { key: 'match', label: 'تطبیق', Component: MatchingModule },
-    { key: 'scramble', label: 'کلمات درهم', Component: ScrambleModule },
-    { key: 'write', label: 'نوشتن', Component: WritingModule },
+    { key: 'scramble', label: 'تثبیت', Component: ScrambleModule },
+    { key: 'write', label: 'تسلط', Component: WritingModule },
     { key: 'finish', label: 'پایان', Component: FinishModule },
 ];
 
@@ -53,6 +54,8 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
     // پنجره انتخاب کلمات فعلاً دکمه‌ای برای باز شدن ندارد؛ برای فعال‌کردن، جایی setEditOpen(true) صدا بزن
     const [editOpen, setEditOpen] = useState(false);
     const [runs, setRuns] = useState({}); // شمارنده اجرای مجدد هر قدم
+    // پیشرفت هر قدم؛ فقط با «تکرار مرحله» (یا تغییر کلمات) پاک می‌شود
+    const saves = useRef({});
 
     const active = useMemo(() => words.filter((w) => !excluded.has(w.id)), [words, excluded]);
     const toAdd = useMemo(() => active.filter((w) => !progress[w.id]), [active, progress]);
@@ -66,6 +69,7 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
 
     // اجرای مجدد یک قدم از ابتدا
     const restart = (key) => {
+        delete saves.current[key];
         setRuns((r) => ({ ...r, [key]: (r[key] ?? 0) + 1 }));
         setDone((prev) => {
             const next = new Set(prev);
@@ -76,6 +80,7 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
 
     const changeWords = (next) => {
         setExcluded(next);
+        saves.current = {};
         setDone(new Set()); // قدم‌ها با کلمات جدید باید دوباره انجام شوند
     };
 
@@ -139,6 +144,10 @@ export default function LearnSession({ words, title = 'یادگیری', onDone }
                     onNext={current < STEPS.length - 1 ? () => setCurrent(current + 1) : undefined}
                     onComplete={() => markDone(step.key)}
                     onRestart={() => restart(step.key)}
+                    saved={saves.current[step.key]}
+                    onSave={(v) => {
+                        saves.current[step.key] = v;
+                    }}
                     addCount={toAdd.length}
                     onLearnedAll={addAll}
                 />

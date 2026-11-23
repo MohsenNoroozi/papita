@@ -1,43 +1,60 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import SwipeCards from './SwipeCards';
+
 import { useSettings } from '@/context/SettingsContext';
 import { speak, speakSequence } from '@/speech';
-import { ModuleEmpty, StepNav } from './shared';
 import { colors } from '@/theme';
+import StepResult from './StepResult';
+import SwipeCards from './SwipeCards';
+import { ModuleEmpty } from './shared';
 
 // زمان‌بندی تلفظ خودکار (میلی‌ثانیه)
 const PAUSE_BETWEEN_WORDS = 700;
 const PAUSE_BEFORE_EXAMPLE = 1200;
 
 /**
- * قدم «معرفی»: یک کارت برای هر کلمه
+ * قدم «آشنایی»: یک کارت برای هر کلمه + صفحه پایانی
  * words: آرایه {id,en,fa,example?,exampleFa?}
- * onNext / onPrev / onRestart: دکمه‌های پایین صفحه در آخرین کلمه
- * onComplete: وقتی به آخرین کلمه رسید
+ * saved / onSave: ذخیره پیشرفت (کلمات دیده‌شده) تا با رفتن به مرحله دیگر از بین نرود
  * کشیدن به راست = بعدی، کشیدن به چپ = قبلی (داخل SwipeCards)
+ * «دیدن» هر کارت مثل جواب درست حساب می‌شود
  */
-export default function IntroModule({ words, onNext, onPrev, onRestart, onComplete }) {
+export default function IntroModule({ words, saved, onSave, onComplete }) {
     const { autoSpeak } = useSettings();
     const autoSpeakRef = useRef(autoSpeak);
     autoSpeakRef.current = autoSpeak;
+    const onSaveRef = useRef(onSave);
+    onSaveRef.current = onSave;
 
-    const [index, setIndex] = useState(0);
-    const safeIndex = Math.min(index, Math.max(words.length - 1, 0));
-    const word = words[safeIndex];
-    const isLast = words.length > 0 && safeIndex === words.length - 1;
+    const [viewed, setViewed] = useState(() => new Set(saved?.viewed ?? []));
+    const last = useRef(saved?.last ?? -1); // آخرین کارت دیده‌شده
+    // بازگشت: یک کارت بعد از آخرین کارت دیده‌شده (یا صفحه پایانی)
+    const [index, setIndex] = useState(() => Math.min(last.current + 1, words.length));
+
+    const word = words[index]; // undefined = صفحه پایانی
+    const isResult = words.length > 0 && index >= words.length;
+    const complete = words.length > 0 && viewed.size === words.length;
 
     // تا کاربر جابه‌جا نشده، تلفظ خودکار نداریم (کلمه اول هنگام ورود به صفحه خوانده نمی‌شود)
     const hasMoved = useRef(false);
 
+    // کارت نمایش‌داده‌شده «دیده‌شده» ثبت می‌شود
     useEffect(() => {
-        if (index !== safeIndex) setIndex(safeIndex);
-    }, [index, safeIndex]);
+        if (index >= words.length) return;
+        last.current = index;
+        const id = words[index].id;
+        setViewed((v) => (v.has(id) ? v : new Set(v).add(id)));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [index]);
 
     useEffect(() => {
-        if (isLast) onComplete?.();
+        onSaveRef.current?.({ viewed: [...viewed], last: last.current });
+    }, [viewed, index]);
+
+    useEffect(() => {
+        if (complete) onComplete?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLast]);
+    }, [complete]);
 
     // ---------- تلفظ خودکار: کلمه دو بار، بعد جمله مثال ----------
     useEffect(() => {
@@ -54,7 +71,7 @@ export default function IntroModule({ words, onNext, onPrev, onRestart, onComple
         setIndex(i);
     };
 
-    if (!word) return <ModuleEmpty />;
+    if (words.length === 0) return <ModuleEmpty />;
 
     return (
         <View style={styles.flex}>
@@ -63,42 +80,55 @@ export default function IntroModule({ words, onNext, onPrev, onRestart, onComple
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
-                <SwipeCards count={words.length} index={safeIndex} onChange={go} style={styles.card}>
-                    <View style={styles.enRow}>
-                        <Text
-                            onPress={() => speak(word.en)}
-                            accessibilityRole="button"
-                            accessibilityLabel={`پخش تلفظ ${word.en}`}
-                            style={styles.en}
-                        >
-                            {word.en}
-                        </Text>
-                    </View>
+                <SwipeCards
+                    count={words.length + 1}
+                    dotCount={words.length}
+                    index={index}
+                    onChange={go}
+                    style={styles.card}
+                >
+                    {isResult ? (
+                        <StepResult
+                            complete={complete}
+                            lines={[`${viewed.size} از ${words.length} کلمه را دیدی`]}
+                        />
+                    ) : (
+                        <>
+                            <View style={styles.enRow}>
+                                <Text
+                                    onPress={() => speak(word.en)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`پخش تلفظ ${word.en}`}
+                                    style={styles.en}
+                                >
+                                    {word.en}
+                                </Text>
+                            </View>
 
-                    <View style={styles.faBox}>
-                        <Text style={styles.fa}>{word.fa}</Text>
-                    </View>
+                            <View style={styles.faBox}>
+                                <Text style={styles.fa}>{word.fa}</Text>
+                            </View>
 
-                    {word.example ? (
-                        <View style={styles.exampleBox}>
-                            <Text
-                                onPress={() => speak(word.example)}
-                                accessibilityRole="button"
-                                accessibilityLabel={`پخش تلفظ ${word.example}`}
-                                style={styles.exampleEn}
-                            >
-                                {word.example}
-                            </Text>
-                            {word.exampleFa ? <Text style={styles.exampleFa}>{word.exampleFa}</Text> : null}
-                        </View>
-                    ) : null}
+                            {word.example ? (
+                                <View style={styles.exampleBox}>
+                                    <Text
+                                        onPress={() => speak(word.example)}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`پخش تلفظ ${word.example}`}
+                                        style={styles.exampleEn}
+                                    >
+                                        {word.example}
+                                    </Text>
+                                    {word.exampleFa ? (
+                                        <Text style={styles.exampleFa}>{word.exampleFa}</Text>
+                                    ) : null}
+                                </View>
+                            ) : null}
+                        </>
+                    )}
                 </SwipeCards>
             </ScrollView>
 
-            {/* دکمه‌ها به پایین صفحه چسبیده‌اند (۸ پیکسل فاصله) */}
-            {isLast ? (
-                <StepNav onNext={onNext} onPrev={onPrev} onRestart={onRestart} style={styles.nav} />
-            ) : null}
         </View>
     );
 }
@@ -130,5 +160,4 @@ const styles = StyleSheet.create({
     },
     exampleEn: { flexShrink: 1, fontSize: 18, color: colors.text, textAlign: 'left', lineHeight: 26 },
     exampleFa: { fontSize: 16, color: colors.sub, textAlign: 'right', writingDirection: 'rtl' },
-    nav: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
 });

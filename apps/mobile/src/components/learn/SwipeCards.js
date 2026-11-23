@@ -9,23 +9,15 @@ const NEXT_DIR = 1;
 const SWIPE_DISTANCE = 70;
 const FLICK_VELOCITY = 0.3;
 
-// اندیس اولین کارتِ تمام‌نشده بعد از from (به‌صورت چرخشی)؛ اگر نبود -۱
-export function findNext(count, from, isDone) {
-    for (let k = 1; k < count; k++) {
-        const i = (from + k) % count;
-        if (!isDone(i)) return i;
-    }
-    return -1;
-}
-
 /**
  * کارتِ قابل‌کشیدن با نوار نقطه‌ای بالا.
- * count / index: تعداد کارت‌ها و کارت فعلی (کنترل‌شده توسط والد)
+ * count / index: تعداد صفحه‌ها (کارت‌ها + صفحه پایانی) و صفحه فعلی (کنترل‌شده توسط والد)
+ * dotCount: تعداد نقطه‌های نوار بالا (پیش‌فرض = count). صفحه پایانی نقطه ندارد.
  * onChange(i): هنگام رفتن به کارت دیگر (وسط انیمیشن) صدا زده می‌شود
  * ref.goTo(i): رفتن برنامه‌ای به یک کارت (با انیمیشن)
  * children: محتوای کارت فعلی
  */
-const SwipeCards = forwardRef(function SwipeCards({ count, index, onChange, children, style }, ref) {
+const SwipeCards = forwardRef(function SwipeCards({ count, dotCount, index, onChange, children, style }, ref) {
     const { width } = useWindowDimensions();
     const x = useRef(new Animated.Value(0)).current;
     const busy = useRef(false);
@@ -33,6 +25,8 @@ const SwipeCards = forwardRef(function SwipeCards({ count, index, onChange, chil
     // آخرین propها برای PanResponder و ref (که فقط یک‌بار ساخته می‌شوند)
     const latest = useRef({});
     latest.current = { count, index, onChange, width };
+
+    const dots = dotCount ?? count;
 
     const springBack = () => Animated.spring(x, { toValue: 0, useNativeDriver: true }).start();
 
@@ -94,7 +88,11 @@ const SwipeCards = forwardRef(function SwipeCards({ count, index, onChange, chil
 
     return (
         <>
-            <DotProgressBar count={count} index={index} onSelect={goTo} />
+            <DotProgressBar
+                count={dots}
+                index={Math.min(index, dots - 1)}
+                onSelect={goTo}
+            />
             <Animated.View
                 {...responder.panHandlers}
                 style={[styles.card, style, { transform: [{ translateX: x }, { rotate }] }]}
@@ -112,8 +110,8 @@ const styles = StyleSheet.create({
         backgroundColor: colors.card,
         borderRadius: 28,
         padding: 20,
-        gap: 4,
-        elevation: 1,
+        gap: 12,
+        elevation: 2,
         shadowColor: '#000',
         shadowOpacity: 0.12,
         shadowRadius: 12,
