@@ -1,28 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useSettings } from '@/context/SettingsContext';
 import { shuffle } from '@/leitner';
 import { speak, stopSpeaking } from '@/speech';
 import { colors } from '@/theme';
-import Button from '@/components/Button';
 import StepResult from './StepResult';
 import SwipeCards from './SwipeCards';
 import { ModuleEmpty } from './shared';
 
-// شناسه هر مهره = اندیس حرف در کلمه اصلی (بدون فاصله)
-function makeItem(word) {
-    const letters = word.en.replace(/\s+/g, '').split('');
-    const order = letters.map((ch, id) => ({ id, ch }));
-    let tiles = shuffle(order);
-    for (let t = 0; t < 5 && new Set(letters).size > 1 && tiles.every((x, i) => x.ch === order[i].ch); t++) {
-        tiles = shuffle(order);
-    }
-    return { id: Math.random().toString(36).slice(2), word, letters, tiles };
-}
+// ردیف‌های کیبورد (QWERTY)
+const KEY_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+
+const isLetter = (ch) => /[a-z]/i.test(ch);
+// حروف قابل‌تایپ کلمه (بدون فاصله و کاراکترهای خاص مثل , ? . ' -)، حروف کوچک
+const lettersOf = (en) => en.toLowerCase().split('').filter(isLetter);
+
+const makeItem = (word) => ({ id: Math.random().toString(36).slice(2), word });
 
 /**
- * قدم «تثبیت» (کلمات درهم): حروف را به ترتیب درست بچین
+ * قدم «تثبیت» (کلمات درهم): حروف را با کیبورد به ترتیب درست بزن
+ * - کیبورد بیرون از کارت و تمام‌عرض است؛ فقط حروف کلمه فعال‌اند (هر حرف تا به تعدادی که در کلمه هست)
+ * - کاراکترهای خاص (, ? . ' - ...) از قبل در خانه‌ها پر هستند و تایپ نمی‌شوند
  * هر کلمه یک کارت است + یک صفحه پایانی؛ کشیدن به راست = بعدی، کشیدن به چپ = قبلی.
  * saved / onSave: ذخیره پیشرفت تا با رفتن به مرحله دیگر از بین نرود
  */
@@ -37,7 +37,7 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
     const last = useRef(saved?.last ?? -1); // اندیس آخرین کارت حل‌شده
     // بازگشت: یک کارت بعد از آخرین جواب درست (یا صفحه پایانی)
     const [index, setIndex] = useState(() => Math.min(last.current + 1, items.length));
-    const [placed, setPlaced] = useState([]); // شناسه مهره‌ها به ترتیب قرارگیری
+    const [placed, setPlaced] = useState([]); // حروفی که تا الان زده شده (به ترتیب)
     const [status, setStatus] = useState('idle'); // idle | correct | wrong | revealed
     const timer = useRef(null);
     const cards = useRef(null);
@@ -76,19 +76,24 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
 
     const current = isResult ? null : items[index];
     const wid = current?.word.id;
+    const letters = current ? lettersOf(current.word.en) : [];
     const isSolved = !!current && solved.has(wid);
     const idle = !!current && status === 'idle' && !isSolved;
 
     const markMissed = () => setMissed((m) => (m.includes(wid) ? m : [...m, wid]));
 
-    const place = (id) => {
-        if (!idle || placed.length >= current.letters.length || placed.includes(id)) return;
-        const next = [...placed, id];
-        setPlaced(next);
-        if (next.length < current.letters.length) return;
+    // تعداد باقی‌مانده‌ی هر حرف (حروف کلمه منهای حروف زده‌شده)
+    const remaining = {};
+    for (const ch of letters) remaining[ch] = (remaining[ch] ?? 0) + 1;
+    for (const ch of placed) remaining[ch] -= 1;
 
-        const guess = next.map((i) => current.letters[i]).join('').toLowerCase();
-        if (guess === current.letters.join('').toLowerCase()) {
+    const place = (ch) => {
+        if (!idle || placed.length >= letters.length || (remaining[ch] ?? 0) <= 0) return;
+        const next = [...placed, ch];
+        setPlaced(next);
+        if (next.length < letters.length) return;
+
+        if (next.join('') === letters.join('')) {
             const nextSolved = new Set(solved).add(wid);
             last.current = index;
             setSolved(nextSolved);
@@ -109,6 +114,19 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
         }
     };
 
+    // پاک کردن آخرین حرف
+    const backspace = () => {
+        if (!idle || placed.length === 0) return;
+        setPlaced(placed.slice(0, -1));
+    };
+
+    // پاک کردن همه حروف زده‌شده
+    const clearAll = () => {
+        if (!idle || placed.length === 0) return;
+        setPlaced([]);
+    };
+
+    // لمس یک خانه = برداشتن همان حرف
     const unplace = (k) => {
         if (!idle) return;
         setPlaced(placed.filter((_, i) => i !== k));
@@ -117,7 +135,7 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
     // نمایش پاسخ؛ بعد از آن کارت پاک می‌شود و هنوز حل‌نشده است
     const reveal = () => {
         if (!idle) return;
-        setPlaced(current.letters.map((_, i) => i)); // ترتیب اصلی = اندیس‌ها
+        setPlaced([...letters]);
         setStatus('revealed');
         markMissed();
         timer.current = setTimeout(() => {
@@ -132,6 +150,7 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
     const missedWords = items.filter((it) => missed.includes(it.word.id)).map((it) => it.word);
 
     let content;
+    let keyboard = null;
     if (isResult) {
         content = (
             <StepResult
@@ -148,35 +167,45 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
         );
     } else {
         // کارت حل‌شده با رفت‌وبرگشت، پاسخ درست را نشان می‌دهد
-        const shownPlaced = isSolved ? current.letters.map((_, i) => i) : placed;
+        const shownPlaced = isSolved ? letters : placed;
         const shownStatus = isSolved ? 'correct' : status;
+        const allGreen = shownStatus === 'correct' || shownStatus === 'revealed';
 
-        // خانه‌های پاسخ (فاصله بین کلمات چندبخشی مثل "ice pop" حفظ می‌شود)
+        // خانه‌های پاسخ: فاصله بین کلمات حفظ می‌شود و کاراکترهای خاص از قبل پر هستند
         let k = -1;
         const slots = current.word.en.split('').map((ch, i) => {
             if (ch === ' ') return <View key={`gap${i}`} style={styles.gap} />;
+
+            if (!isLetter(ch)) {
+                return (
+                    <View key={`fix${i}`} style={[styles.slot, styles.slotFixed, allGreen && styles.slotCorrect]}>
+                        <Text style={[styles.slotText, styles.slotTextFixed]}>{ch}</Text>
+                    </View>
+                );
+            }
+
             k += 1;
             const pos = k;
-            const id = shownPlaced[pos];
+            const letter = shownPlaced[pos];
             return (
                 <Pressable
                     key={`slot${i}`}
                     onPress={() => unplace(pos)}
                     style={[
                         styles.slot,
-                        id != null && styles.slotFilled,
-                        (shownStatus === 'correct' || shownStatus === 'revealed') && styles.slotCorrect,
+                        letter != null && styles.slotFilled,
+                        allGreen && styles.slotCorrect,
                         shownStatus === 'wrong' && styles.slotWrong,
                     ]}
                 >
-                    <Text style={styles.slotText}>{id != null ? current.letters[id] : ''}</Text>
+                    <Text style={styles.slotText}>{letter ?? ''}</Text>
                 </Pressable>
             );
         });
 
         content = (
             <>
-                <Text style={styles.question}>حروف را به ترتیب بچین</Text>
+                <Text style={styles.question}>حروف را به ترتیب بزن</Text>
 
                 <Pressable
                     onPress={() => speak(current.word.en)}
@@ -188,33 +217,98 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
                 </Pressable>
 
                 <View style={styles.slotsRow}>{slots}</View>
-
-                <View style={styles.tilesRow}>
-                    {current.tiles.map((t) => {
-                        const used = shownPlaced.includes(t.id);
-                        return (
-                            <Pressable
-                                key={t.id}
-                                onPress={() => place(t.id)}
-                                disabled={used}
-                                style={[styles.tile, used && styles.tileUsed]}
-                            >
-                                <Text style={styles.tileText}>{t.ch}</Text>
-                            </Pressable>
-                        );
-                    })}
-                </View>
-
-                <View style={styles.actions}>
-                    <Button
-                        title="پاک کردن"
-                        variant="soft"
-                        disabled={placed.length === 0 || !idle}
-                        onPress={() => setPlaced([])}
-                    />
-                    <Button title="نمایش پاسخ" variant="ghost" disabled={!idle} onPress={reveal} />
-                </View>
             </>
+        );
+
+        const canType = idle && placed.length < letters.length;
+        const canErase = idle && placed.length > 0;
+
+        // کیبورد: بیرون از کارت، تمام‌عرض؛ فقط حروف کلمه فعال‌اند
+        keyboard = (
+            <View style={styles.keyboard}>
+                {KEY_ROWS.map((row, r) => (
+                    <View key={row} style={styles.keyRow}>
+                        {row.split('').map((ch) => {
+                            const enabled = canType && (remaining[ch] ?? 0) > 0;
+                            const inWord = ch in remaining;
+                            return (
+                                <Pressable
+                                    key={ch}
+                                    onPress={() => place(ch)}
+                                    disabled={!enabled}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={ch}
+                                    style={({ pressed }) => [
+                                        styles.key,
+                                        enabled ? styles.keyOn : styles.keyOff,
+                                        enabled && pressed && styles.keyPressed,
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.keyText,
+                                            enabled ? styles.keyTextOn : styles.keyTextOff,
+                                            !inWord && styles.keyTextNotInWord,
+                                        ]}
+                                    >
+                                        {ch}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                        {r === KEY_ROWS.length - 1 && (
+                            <Pressable
+                                onPress={backspace}
+                                disabled={!canErase}
+                                accessibilityRole="button"
+                                accessibilityLabel="پاک کردن حرف"
+                                style={({ pressed }) => [
+                                    styles.key,
+                                    styles.keyWide,
+                                    canErase ? styles.keyDanger : styles.keyOff,
+                                    canErase && pressed && styles.keyPressed,
+                                ]}
+                            >
+                                <Ionicons
+                                    name="backspace-outline"
+                                    size={24}
+                                    color={canErase ? colors.danger : colors.starEmpty}
+                                />
+                            </Pressable>
+                        )}
+                    </View>
+                ))}
+
+                {/* ردیف آخر: نمایش پاسخ (چشم) و پاک کردن همه (ضربدر) */}
+                <View style={styles.keyRow}>
+                    <Pressable
+                        onPress={reveal}
+                        disabled={!idle}
+                        accessibilityRole="button"
+                        accessibilityLabel="نمایش پاسخ"
+                        style={({ pressed }) => [
+                            styles.key,
+                            idle ? styles.keyOn : styles.keyOff,
+                            idle && pressed && styles.keyPressed,
+                        ]}
+                    >
+                        <Ionicons name="eye-outline" size={26} color={idle ? colors.primary : colors.starEmpty} />
+                    </Pressable>
+                    <Pressable
+                        onPress={clearAll}
+                        disabled={!canErase}
+                        accessibilityRole="button"
+                        accessibilityLabel="پاک کردن همه"
+                        style={({ pressed }) => [
+                            styles.key,
+                            canErase ? styles.keyDanger : styles.keyOff,
+                            canErase && pressed && styles.keyPressed,
+                        ]}
+                    >
+                        <Ionicons name="close" size={26} color={canErase ? colors.danger : colors.starEmpty} />
+                    </Pressable>
+                </View>
+            </View>
         );
     }
 
@@ -225,6 +319,7 @@ export default function ScrambleModule({ words, saved, onSave, onComplete }) {
                     {content}
                 </SwipeCards>
             </ScrollView>
+            {keyboard}
         </View>
     );
 }
@@ -255,26 +350,39 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     slotFilled: { borderColor: colors.primary },
+    // کاراکتر خاص (از قبل پر): باریک‌تر و کم‌رنگ‌تر
+    slotFixed: { width: 24, backgroundColor: colors.border, borderColor: colors.border },
     slotCorrect: { backgroundColor: colors.successSoft, borderColor: colors.success },
     slotWrong: { backgroundColor: colors.dangerSoft, borderColor: colors.danger },
     slotText: { fontSize: 20, fontWeight: '800', color: colors.text },
-    tilesRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: 8,
+    slotTextFixed: { color: colors.sub },
+
+    // کیبورد تمام‌عرض (بیرون از کارت)
+    keyboard: {
+        gap: 6,
         direction: 'ltr',
-        marginTop: 8,
+        paddingHorizontal: 4,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: colors.card,
+        borderTopWidth: StyleSheet.hairlineWidth * 2,
+        borderTopColor: colors.border,
     },
-    tile: {
-        width: 46,
-        height: 54,
-        borderRadius: 14,
-        backgroundColor: colors.primarySoft,
+    keyRow: { flexDirection: 'row', justifyContent: 'center', gap: 4, direction: 'ltr' },
+    key: {
+        flex: 1,
+        height: 46,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    tileUsed: { opacity: 0 },
-    tileText: { fontSize: 26, fontWeight: '800', color: colors.primary },
-    actions: { gap: 4, marginTop: 8 },
+    keyWide: { flex: 1.6 },
+    keyOn: { backgroundColor: colors.primarySoft },
+    keyOff: { backgroundColor: colors.bg },
+    keyDanger: { backgroundColor: colors.dangerSoft },
+    keyPressed: { opacity: 0.6, transform: [{ scale: 0.95 }] },
+    keyText: { fontSize: 20, fontWeight: '800' },
+    keyTextOn: { color: colors.primary },
+    keyTextOff: { color: colors.sub },
+    keyTextNotInWord: { color: colors.starEmpty },
 });
