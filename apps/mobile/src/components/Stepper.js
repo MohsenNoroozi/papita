@@ -76,9 +76,10 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row-reverse',
         backgroundColor: colors.card,
-        borderRadius: 18,
-        marginHorizontal: 16,
-        marginTop: 4,
+        borderBottomLeftRadius: 18,
+        borderBottomRightRadius: 18,
+        marginHorizontal: 0,
+        marginTop: 0,
         marginBottom: 8,
         paddingVertical: 10,
         paddingHorizontal: 2,

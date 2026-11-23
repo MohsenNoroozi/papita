@@ -8,24 +8,25 @@ export default function ScreenHeader({ title, right, showBack = true, onBack }) 
     const router = useRouter();
     return (
         <View style={styles.row}>
+            <View style={[styles.side, styles.left]}>{right}</View>
+            <Text style={styles.title} numberOfLines={1}>
+                {title}
+            </Text>
             {showBack ? (
-                <Pressable onPress={onBack ?? (() => router.back())} hitSlop={12} style={styles.side}>
-                    <Ionicons name="chevron-back" size={28} color={colors.text} />
+                <Pressable onPress={onBack ?? (() => router.back())} hitSlop={12} style={[styles.side, styles.right]}>
+                    <Ionicons name="chevron-forward" size={28} color={colors.text} />
                 </Pressable>
             ) : (
                 <View style={styles.side} />
             )}
-            <Text style={styles.title} numberOfLines={1}>
-                {title}
-            </Text>
-            <View style={[styles.side, styles.right]}>{right}</View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8 },
-    side: { width: 64 },
+    row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.bar },
+    side: { width: 32 },
+    left: { alignItems: 'flex-start' },
     right: { alignItems: 'flex-end' },
-    title: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '800', color: colors.text },
+    title: { flex: 1, textAlign: 'right', fontSize: 20, fontWeight: '800', color: colors.text },
 });
