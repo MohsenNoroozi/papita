@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
+import {View, Text, ActivityIndicator, StyleSheet, I18nManager} from 'react-native';
 import {Stack} from 'expo-router';
 import {AuthProvider, useAuth} from '@/context/AuthContext';
 import {SettingsProvider} from '@/context/SettingsContext';
@@ -10,6 +10,10 @@ import {RefreshProvider} from '@/context/RefreshContext';
 import LoginScreen from '@/components/LoginScreen';
 import Button from '@/components/Button';
 import {colors} from '@/theme';
+
+// این برنامه فارسی‌محور است؛ جهت RTL را پیش از رندر مسیرها فعال می‌کنیم.
+I18nManager.allowRTL(true);
+I18nManager.forceRTL(true);
 
 // تا کاتالوگ برای بار اول از سرور نیامده، اپ نمایش داده نمی‌شود
 function CatalogGate({children}) {

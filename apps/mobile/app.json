@@ -8,7 +8,11 @@
     "scheme": "papita",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "برای تشخیص تلفظ شما",
+        "NSMicrophoneUsageDescription": "برای تلفظ کلمات به میکروفون نیاز است"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +23,10 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.papita.mobile",
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "server",
@@ -44,13 +51,24 @@
           }
         }
       ],
-      ["expo-speech-recognition", {
-        "microphonePermission": "برای تلفظ کلمات به میکروفون نیاز است",
-        "speechRecognitionPermission": "برای تشخیص تلفظ شما",
-        "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
-      }],
-      "expo-web-browser",
-      "expo-speech-recognition"
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "برای تلفظ کلمات به میکروفون نیاز است",
+          "speechRecognitionPermission": "برای تشخیص تلفظ شما",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportsRTL": true,
+          "forcesRTL": true
+        }
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -63,8 +81,10 @@
         }
       },
       "eas": {
-        "projectId": "43381867-144d-4b82-97b5-3414f348b1e3"
-      }
-    }
+        "projectId": "9e4ea34c-6e9b-47c9-8a47-ba6576fad20f"
+      },
+      "supportsRTL": true
+    },
+    "owner": "mohsen.noroozi"
   }
 }
