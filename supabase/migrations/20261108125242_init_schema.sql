@@ -73,6 +73,73 @@ create index source_words_updated_idx on source_words (updated_at);
 create index source_words_word_idx on source_words (word_id);
 
 -- ------------------------------------------------------------
+-- مدیا (صوت/ویدیو) و عبارت‌ها
+-- همهٔ زمان‌های این بخش (created_at / updated_at / deleted_at / start_ms / end_ms)
+-- برای همگام‌سازی، عدد صحیح میلی‌ثانیه (bigint) هستند، نه timestamptz.
+-- حذف = soft delete با deleted_at (null = فعال)
+-- ------------------------------------------------------------
+
+-- زمان فعلی بر حسب میلی‌ثانیه از epoch
+create function now_ms() returns bigint
+    language sql volatile as
+$$
+select (extract(epoch from clock_timestamp()) * 1000)::bigint
+$$;
+
+-- نسخهٔ ms تابع set_updated_at
+create function set_updated_at_ms() returns trigger
+    language plpgsql as
+$$
+begin
+    new.updated_at = now_ms(); return new;
+end
+$$;
+
+create table media
+(
+    id            bigint primary key generated always as identity,
+    source_id     bigint      not null references sources (id),
+    type          text        not null default 'video',
+    title         text        not null,
+    description   text,
+    storage_path  text,
+    thumbnail_url text,
+    position      int         not null default 0,
+    created_at    bigint      not null default now_ms(),
+    updated_at    bigint      not null default now_ms(),
+    deleted_at    bigint,                             -- null = حذف نشده
+    constraint media_type_check check (type in ('audio', 'video')),
+    constraint media_position_check check (position >= 0),
+    constraint media_storage_path_not_blank check (btrim(storage_path) <> '')
+);
+
+create table phrases
+(
+    id         bigint primary key generated always as identity,
+    media_id   bigint not null references media (id),
+    start_ms   bigint not null,                       -- شروع عبارت در مدیا (ms)
+    end_ms     bigint not null,                       -- پایان عبارت در مدیا (ms)
+    content    jsonb  not null,                       -- {version, sentences:[{id, position, text, translations:{fa}}]}
+    created_at bigint not null default now_ms(),
+    updated_at bigint not null default now_ms(),
+    deleted_at bigint,
+    constraint phrases_start_check check (start_ms >= 0),
+    constraint phrases_range_check check (end_ms > start_ms),
+    constraint phrases_content_check check (
+        jsonb_typeof(content) = 'object'
+            and jsonb_typeof(content -> 'version') = 'number'
+            and jsonb_typeof(content -> 'sentences') = 'array'
+            and jsonb_array_length(content -> 'sentences') > 0
+        )
+);
+
+create index media_source_idx on media (source_id, position) where deleted_at is null;
+create index media_updated_idx on media (updated_at);
+create index phrases_media_idx on phrases (media_id, start_ms) where deleted_at is null;
+create index phrases_updated_idx on phrases (updated_at);
+
+
+-- ------------------------------------------------------------
 -- داده کاربر
 -- ------------------------------------------------------------
 create table profiles
@@ -211,6 +278,16 @@ create trigger t_up
     on user_progress
     for each row
 execute function set_updated_at();
+create trigger t_media
+    before update
+    on media
+    for each row
+execute function set_updated_at_ms();
+create trigger t_phrases
+    before update
+    on phrases
+    for each row
+execute function set_updated_at_ms();
 
 -- ------------------------------------------------------------
 -- امنیت
@@ -221,9 +298,11 @@ alter table words enable row level security;
 alter table source_words enable row level security;
 alter table profiles enable row level security;
 alter table user_progress enable row level security;
+alter table media enable row level security;
+alter table phrases enable row level security;
 
 -- کاربر بدون ورود (anon) هیچ دسترسی مستقیمی به جدول‌ها ندارد
-revoke all on collections, sources, words, source_words, profiles, user_progress from anon;
+revoke all on collections, sources, words, source_words, profiles, user_progress, media, phrases from anon;
 
 create function is_admin() returns boolean
     language sql
@@ -237,11 +316,15 @@ create policy read_authenticated on collections for select to authenticated usin
 create policy read_authenticated on sources for select to authenticated using (true);
 create policy read_authenticated on words for select to authenticated using (true);
 create policy read_authenticated on source_words for select to authenticated using (true);
+create policy read_authenticated on media for select to authenticated using (true);
+create policy read_authenticated on phrases for select to authenticated using (true);
 
 create policy admin_write on collections for all to authenticated using (is_admin()) with check (is_admin());
 create policy admin_write on sources for all to authenticated using (is_admin()) with check (is_admin());
 create policy admin_write on words for all to authenticated using (is_admin()) with check (is_admin());
 create policy admin_write on source_words for all to authenticated using (is_admin()) with check (is_admin());
+create policy admin_write on media for all to authenticated using (is_admin()) with check (is_admin());
+create policy admin_write on phrases for all to authenticated using (is_admin()) with check (is_admin());
 
 -- داده کاربر: هر کس فقط مال خودش
 create policy own on profiles for all to authenticated using (id = auth.uid()) with check (id = auth.uid());
@@ -260,6 +343,26 @@ create policy admin_all on user_progress for all to authenticated
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('avatars', 'avatars', true, 2097152, array ['image/jpeg'])
 on conflict (id) do nothing;
+
+-- ------------------------------------------------------------
+-- Storage: فایل‌های مدیا (خصوصی؛ کاربر واردشده بخواند، فقط ادمین بنویسد)
+-- مسیر نمونه: sources/<source_id>/<file>
+-- ------------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('media', 'media', false, 524288000,
+        array ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/wav', 'audio/ogg',
+            'video/mp4', 'video/webm', 'video/quicktime',
+            'image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+create policy media_read on storage.objects
+    for select to authenticated
+    using (bucket_id = 'media');
+
+create policy media_admin_all on storage.objects
+    for all to authenticated
+    using (bucket_id = 'media' and public.is_admin())
+    with check (bucket_id = 'media' and public.is_admin());
 
 -- ------------------------------------------------------------
 -- API همگام‌سازی (فقط authenticated؛ RLS هم اعمال می‌شود)
@@ -379,7 +482,7 @@ begin
     return v_word_id;
 end $$;
 
--- حذف نرم منبع + واژه‌های داخل آن (خودِ واژه‌ها حذف نمی‌شوند؛ ممکن است در منبع دیگری باشند)
+-- حذف نرم منبع + واژه‌ها و مدیای داخل آن (خودِ واژه‌ها حذف نمی‌شوند؛ ممکن است در منبع دیگری باشند)
 create function delete_source(p_id bigint) returns void
     language plpgsql security invoker as $$
 begin
@@ -388,6 +491,10 @@ begin
     end if;
     update source_words set deleted = true where source_id = p_id and not deleted;
     update sources set deleted = true where id = p_id and not deleted;
+    update phrases set deleted_at = now_ms()
+    where deleted_at is null
+      and media_id in (select id from media where source_id = p_id and deleted_at is null);
+    update media set deleted_at = now_ms() where source_id = p_id and deleted_at is null;
 end $$;
 
 -- ترتیب منابع یک مجموعه؛ p_ids به ترتیب نمایش
@@ -467,6 +574,31 @@ begin
     return jsonb_build_object('imported', v_imported, 'skipped', v_skipped);
 end $$;
 
+-- تغییرات مدیا و عبارت‌ها از زمان since_ms (میلی‌ثانیه) به بعد؛ ردیف‌های حذف‌شده با deletedAt می‌آیند
+create function media_changes(since_ms bigint)
+    returns jsonb
+    language sql
+    stable security invoker as
+$$
+select jsonb_build_object(
+               'media', coalesce((select jsonb_agg(jsonb_build_object(
+                'id', id, 'sourceId', source_id, 'type', type, 'title', title,
+                'description', description, 'storagePath', storage_path,
+                'thumbnailUrl', thumbnail_url, 'position', position,
+                'createdAt', created_at, 'updatedAt', updated_at, 'deletedAt', deleted_at))
+                                  from media
+                                  where updated_at > since_ms), '[]'::jsonb),
+               'phrases', coalesce((select jsonb_agg(jsonb_build_object(
+                'id', id, 'mediaId', media_id, 'startMs', start_ms, 'endMs', end_ms,
+                'content', content,
+                'createdAt', created_at, 'updatedAt', updated_at, 'deletedAt', deleted_at))
+                                    from phrases
+                                    where updated_at > since_ms), '[]'::jsonb),
+           -- ۵ ثانیه همپوشانی؛ مثل catalog_changes
+               'nextSince', now_ms() - 5000
+       );
+$$;
+
 revoke all on function catalog_changes(timestamptz) from public, anon;
 revoke all on function sync_progress(jsonb, timestamptz) from public, anon;
 grant execute on function catalog_changes(timestamptz) to authenticated;
@@ -482,3 +614,6 @@ grant execute on function reorder_sources(bigint, bigint[]) to authenticated;
 
 revoke all on function import_source_words(bigint, jsonb) from public, anon;
 grant execute on function import_source_words(bigint, jsonb) to authenticated;
+
+revoke all on function media_changes(bigint) from public, anon;
+grant execute on function media_changes(bigint) to authenticated;
