@@ -6,7 +6,10 @@ import { MAX_IMPORT_ROWS, type ImportReport, type ImportRowInput } from "@/lib/i
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
-const fail = (error: string): ActionResult => ({ ok: false, error })
+const fail = (error: string): Extract<ActionResult, { ok: false }> => ({
+  ok: false,
+  error,
+})
 const ok: ActionResult = { ok: true }
 const GENERIC = "مشکلی پیش آمد؛ دوباره تلاش کنید"
 
@@ -21,6 +24,7 @@ function mapError(error: { code?: string }): string {
   if (error.code === "23505") return "این واژه (با همین زمینه) قبلاً ثبت شده است"
   if (error.code === "42501") return "دسترسی لازم را ندارید"
   if (error.code === "P0002") return "منبع پیدا نشد"
+  if (error.code === "23503") return "منبع پیدا نشد"
   return GENERIC
 }
 
@@ -39,8 +43,8 @@ function refresh(sourceId: number) {
 }
 
 export async function updateSource(
-  id: number,
-  input: { title: string; collectionId: number }
+    id: number,
+    input: { title: string; collectionId: number }
 ): Promise<ActionResult> {
   const title = text(input.title)
   if (!title) return fail("عنوان منبع نباید خالی باشد")
@@ -50,10 +54,10 @@ export async function updateSource(
   if (!supabase) return fail("لطفاً دوباره وارد شوید")
 
   const { data, error } = await supabase
-    .from("sources")
-    .update({ title, collection_id: input.collectionId })
-    .eq("id", id)
-    .select("id")
+      .from("sources")
+      .update({ title, collection_id: input.collectionId })
+      .eq("id", id)
+      .select("id")
   if (error) return fail(mapError(error))
   if (!data?.length) return fail("دسترسی لازم را ندارید")
 
@@ -74,8 +78,8 @@ export async function deleteSource(id: number): Promise<ActionResult> {
 }
 
 export async function addWord(
-  sourceId: number,
-  input: { en: string; fa: string; level: string; sense: string; example: string; exampleFa: string }
+    sourceId: number,
+    input: { en: string; fa: string; level: string; sense: string; example: string; exampleFa: string }
 ): Promise<ActionResult> {
   const en = text(input.en)
   const fa = text(input.fa)
@@ -103,9 +107,9 @@ export async function addWord(
 
 // en / fa / sense / level روی خودِ واژه (مشترک بین منابع) اعمال می‌شود
 export async function updateWord(
-  sourceId: number,
-  wordId: number,
-  patch: Partial<{ en: string; fa: string; sense: string; level: string }>
+    sourceId: number,
+    wordId: number,
+    patch: Partial<{ en: string; fa: string; sense: string; level: string }>
 ): Promise<ActionResult> {
   const update: Record<string, unknown> = {}
   if ("en" in patch) {
@@ -137,19 +141,19 @@ export async function updateWord(
 
 // مثال مخصوص همین منبع است (source_words)
 export async function updateExample(
-  sourceId: number,
-  wordId: number,
-  input: { example: string; exampleFa: string }
+    sourceId: number,
+    wordId: number,
+    input: { example: string; exampleFa: string }
 ): Promise<ActionResult> {
   const supabase = await authed()
   if (!supabase) return fail("لطفاً دوباره وارد شوید")
 
   const { data, error } = await supabase
-    .from("source_words")
-    .update({ example: nullable(input.example), example_fa: nullable(input.exampleFa) })
-    .eq("source_id", sourceId)
-    .eq("word_id", wordId)
-    .select("word_id")
+      .from("source_words")
+      .update({ example: nullable(input.example), example_fa: nullable(input.exampleFa) })
+      .eq("source_id", sourceId)
+      .eq("word_id", wordId)
+      .select("word_id")
   if (error) return fail(mapError(error))
   if (!data?.length) return fail("دسترسی لازم را ندارید")
 
@@ -163,11 +167,11 @@ export async function removeWord(sourceId: number, wordId: number): Promise<Acti
   if (!supabase) return fail("لطفاً دوباره وارد شوید")
 
   const { data, error } = await supabase
-    .from("source_words")
-    .update({ deleted: true })
-    .eq("source_id", sourceId)
-    .eq("word_id", wordId)
-    .select("word_id")
+      .from("source_words")
+      .update({ deleted: true })
+      .eq("source_id", sourceId)
+      .eq("word_id", wordId)
+      .select("word_id")
   if (error) return fail(mapError(error))
   if (!data?.length) return fail("دسترسی لازم را ندارید")
 
@@ -239,4 +243,36 @@ export async function importWords(sourceId: number, rows: ImportRowInput[]): Pro
     ok: true,
     report: { imported, skipped, invalid: invalid.slice(0, 50), invalidCount: invalid.length },
   }
+}
+
+export type CreateMediaResult = { ok: true; id: number } | { ok: false; error: string }
+
+// مدیای جدید با type پیش‌فرض (video) و بدون فایل؛ در انتهای مدیاهای همان منبع قرار می‌گیرد
+export async function createMedia(sourceId: number, input: { title: string }): Promise<CreateMediaResult> {
+  const title = text(input.title)
+  if (!Number.isInteger(sourceId) || sourceId <= 0) return fail("منبع نامعتبر است")
+  if (!title) return fail("عنوان مدیا را وارد کنید")
+  if (title.length > 200) return fail("عنوان مدیا خیلی طولانی است")
+
+  const supabase = await authed()
+  if (!supabase) return fail("لطفاً دوباره وارد شوید")
+
+  const { data: last } = await supabase
+      .from("media")
+      .select("position")
+      .eq("source_id", sourceId)
+      .is("deleted_at", null)
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+  const { data, error } = await supabase
+      .from("media")
+      .insert({ source_id: sourceId, title, position: (last?.position ?? 0) + 1 })
+      .select("id")
+      .single()
+  if (error) return fail(mapError(error))
+
+  revalidatePath(`/sources/${sourceId}/media`)
+  return { ok: true, id: data.id }
 }

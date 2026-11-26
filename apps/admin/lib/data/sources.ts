@@ -27,12 +27,12 @@ export type SourceWordRow = {
 export const getSource = cache(async (id: number): Promise<SourceDetail | null> => {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from("sources")
-    .select("id, title, collection_id, collections(id, title), source_words(count)")
-    .eq("id", id)
-    .eq("deleted", false)
-    .eq("source_words.deleted", false)
-    .maybeSingle()
+      .from("sources")
+      .select("id, title, collection_id, collections(id, title), source_words(count)")
+      .eq("id", id)
+      .eq("deleted", false)
+      .eq("source_words.deleted", false)
+      .maybeSingle()
 
   if (error || !data) return null
   const row = data as unknown as {
@@ -62,12 +62,12 @@ export const getCollections = cache(async (): Promise<CollectionOption[]> => {
 export async function getSourceWords(sourceId: number): Promise<SourceWordRow[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from("source_words")
-    .select("position, example, example_fa, updated_at, words!inner(id, en, sense, fa, level, updated_at)")
-    .eq("source_id", sourceId)
-    .eq("deleted", false)
-    .eq("words.deleted", false)
-    .order("position")
+      .from("source_words")
+      .select("position, example, example_fa, updated_at, words!inner(id, en, sense, fa, level, updated_at)")
+      .eq("source_id", sourceId)
+      .eq("deleted", false)
+      .eq("words.deleted", false)
+      .order("position")
 
   if (error || !data) return []
 
@@ -88,3 +88,74 @@ export async function getSourceWords(sourceId: number): Promise<SourceWordRow[]>
     updatedAt: r.updated_at > r.words.updated_at ? r.updated_at : r.words.updated_at,
   }))
 }
+
+export type MediaType = "audio" | "video"
+
+export type MediaItem = {
+  id: number
+  sourceId: number
+  type: MediaType
+  title: string
+  description: string | null
+  thumbnailUrl: string | null
+  storagePath: string | null
+  position: number
+  phraseCount: number
+}
+
+type MediaRaw = {
+  id: number
+  source_id: number
+  type: string
+  title: string
+  description: string | null
+  thumbnail_url: string | null
+  storage_path: string | null
+  position: number
+  phrases: { count: number }[] | null
+}
+
+const MEDIA_COLUMNS =
+    "id, source_id, type, title, description, thumbnail_url, storage_path, position, phrases(count)"
+
+const toMedia = (r: MediaRaw): MediaItem => ({
+  id: r.id,
+  sourceId: r.source_id,
+  type: r.type === "audio" ? "audio" : "video",
+  title: r.title,
+  description: r.description,
+  thumbnailUrl: r.thumbnail_url,
+  storagePath: r.storage_path,
+  position: r.position,
+  phraseCount: r.phrases?.[0]?.count ?? 0,
+})
+
+export async function getSourceMedia(sourceId: number): Promise<MediaItem[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+      .from("media")
+      .select(MEDIA_COLUMNS)
+      .eq("source_id", sourceId)
+      .is("deleted_at", null)
+      .is("phrases.deleted_at", null)
+      .order("position")
+      .order("id")
+
+  if (error || !data) return []
+  return (data as unknown as MediaRaw[]).map(toMedia)
+}
+
+export const getMedia = cache(async (sourceId: number, mediaId: number): Promise<MediaItem | null> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+      .from("media")
+      .select(MEDIA_COLUMNS)
+      .eq("id", mediaId)
+      .eq("source_id", sourceId)
+      .is("deleted_at", null)
+      .is("phrases.deleted_at", null)
+      .maybeSingle()
+
+  if (error || !data) return null
+  return toMedia(data as unknown as MediaRaw)
+})

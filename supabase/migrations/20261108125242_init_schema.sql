@@ -589,7 +589,7 @@ select jsonb_build_object(
                                   from media
                                   where updated_at > since_ms), '[]'::jsonb),
                'phrases', coalesce((select jsonb_agg(jsonb_build_object(
-                'id', id, 'mediaId', media_id, 'startMs', start_ms, 'endMs', end_ms,
+                'id', id, '[mediaId]', media_id, 'startMs', start_ms, 'endMs', end_ms,
                 'content', content,
                 'createdAt', created_at, 'updatedAt', updated_at, 'deletedAt', deleted_at))
                                     from phrases
