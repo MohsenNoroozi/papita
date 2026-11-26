@@ -12,13 +12,13 @@ const nf = new Intl.NumberFormat("fa-IR")
 const TYPE_LABEL: Record<MediaType, string> = { audio: "صوت", video: "ویدیو" }
 const TYPE_ICON = { audio: MusicNote01Icon, video: Video01Icon } as const
 
-function MediaCard({ sourceId, media }: { sourceId: number; media: MediaItem }) {
+function MediaCard({media }: { sourceId: number; media: MediaItem }) {
     // thumbnail فقط وقتی آدرس کامل باشد نمایش داده می‌شود (باکت media خصوصی است)
     const thumb = media.thumbnailUrl && /^https?:\/\//.test(media.thumbnailUrl) ? media.thumbnailUrl : null
 
     return (
         <Link
-            href={`/sources/${sourceId}/media/${media.id}`}
+            href={`/media/${media.id}`}
             className="group block rounded-4xl outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
         >
             <Card className="h-full gap-0 py-0 shadow-none transition-shadow group-hover:ring-2 group-hover:ring-brand-deep/40">

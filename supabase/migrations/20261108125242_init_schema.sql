@@ -353,7 +353,10 @@ values ('media', 'media', false, 524288000,
         array ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/wav', 'audio/ogg',
             'video/mp4', 'video/webm', 'video/quicktime',
             'image/jpeg', 'image/png', 'image/webp'])
-on conflict (id) do nothing;
+on conflict (id) do update
+    set public             = excluded.public,
+        file_size_limit    = excluded.file_size_limit,
+        allowed_mime_types = excluded.allowed_mime_types;
 
 create policy media_read on storage.objects
     for select to authenticated
