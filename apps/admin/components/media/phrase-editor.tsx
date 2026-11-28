@@ -174,6 +174,7 @@ export function PhraseEditor({mediaId, mediaType, mediaUrl, phrases: initial}: {
             return current.map((phrase) => phrase.id === persistedId ? {...phrase, ...next} : phrase).sort((a, b) => a.startMs - b.startMs || a.id - b.id)
         })
     }, [mediaId])
+
     useEffect(() => {
         persistRef.current = persist
     }, [persist])
@@ -307,6 +308,22 @@ export function PhraseEditor({mediaId, mediaType, mediaUrl, phrases: initial}: {
     }
 
     const insertPhrase = async (index: number, side: "before" | "after") => {
+        if (phrases.length === 0) {
+            const startMs = 0
+            let endMs = 2000
+            if (durationMs > 0) endMs = Math.min(endMs, durationMs)
+            if (endMs <= startMs) {
+                setSaveError("برای افزودن عبارت، بازهٔ زمانی معتبری در دسترس نیست")
+                return
+            }
+            const temporaryId = temporaryIdRef.current--
+            const phrase: Phrase = {id: temporaryId, startMs, endMs, sentences: [{en: "", fa: ""}]}
+            setPhrases([phrase])
+            selectPhrase(phrase)
+            await persist(temporaryId, draftOf(phrase), true)
+            return
+        }
+
         const neighbor = phrases[index]
         let startMs: number
         let endMs: number
@@ -367,95 +384,123 @@ export function PhraseEditor({mediaId, mediaType, mediaUrl, phrases: initial}: {
                 <CardContent className="flex min-h-0 flex-1 flex-col p-0">
                     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                         <div className="min-h-0 flex-1 overflow-auto">
-                            <table className="w-full min-w-[760px] table-fixed text-sm">
+                            <table className="w-full table-fixed text-sm">
                                 <thead
-                                    className="sticky top-0 z-10 bg-muted/90 text-xs text-muted-foreground backdrop-blur">
+                                    className="sticky top-0 z-20 bg-muted/90 text-xs text-muted-foreground backdrop-blur">
                                 <tr>
-                                    <th className="w-36 px-4 py-3 text-center font-medium">زمان شروع</th>
-                                    <th className="w-36 px-4 py-3 text-center font-medium">زمان پایان</th>
-                                    <th className="px-4 py-3 text-right font-medium">جملات</th>
-                                    <th className="w-32 px-3 py-3 text-center font-medium">عملیات</th>
+                                    <th className="w-24 px-2 py-3 text-center font-medium">زمان شروع</th>
+                                    <th className="w-24 px-2 py-3 text-center font-medium">زمان پایان</th>
+                                    <th className="px-4 py-3 text-center font-medium">جملات</th>
+                                    <th className="w-12 px-1 py-3 text-center font-medium">عملیات</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y">
-                                {phrases.map((phrase, index) =>
-                                    <tr
-                                        id={`${phrase.id}`}
-                                        key={phrase.id}
-                                        ref={(node) => {
-                                            if (node) rowRefs.current.set(phrase.id, node); else rowRefs.current.delete(phrase.id)
-                                        }}
-                                        onClick={() => selectPhrase(phrase)}
-                                        onDoubleClick={() => {
-                                            const player = mediaRef.current
-                                            if (!player) return
-                                            if (!player.paused && doubleClickedRef.current === phrase.id) {
-                                                player.pause()
-                                            } else {
-                                                seek(phrase.startMs)
-                                                play()
-                                            }
-                                            doubleClickedRef.current = phrase.id
-                                        }}
-                                        className={cn("cursor-pointer transition-colors hover:bg-muted/50", selectedId === phrase.id && "bg-brand-deep/10 hover:bg-brand-deep/10", visiblePlayingId === phrase.id && "font-semibold")}>
-                                        <td className="px-4 py-3 text-center font-mono text-xs tabular-nums"
-                                            dir="ltr">{formatTime(phrase.startMs)}</td>
-                                        <td className="px-4 py-3 text-center font-mono text-xs tabular-nums"
-                                            dir="ltr">{formatTime(phrase.endMs)}</td>
-                                        <td className="px-4 py-3">
-                                            <div className="space-y-1">{phrase.sentences.map((line, lineIndex) => <div
-                                                key={lineIndex} className="grid grid-cols-2 gap-4"><span dir="ltr"
-                                                                                                         className="truncate text-left">{line.en ||
-                                                <span className="text-muted-foreground">—</span>}</span><span
-                                                className="truncate">{line.fa ||
-                                                <span className="text-muted-foreground">—</span>}</span></div>)}</div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div
-                                                className="flex justify-center gap-1"
-                                                onClick={(event) => event.stopPropagation()}
-                                            >
+                                {phrases.map((phrase, index) => {
+                                    const isFirst = index === 0
+                                    return (
+                                        <tr
+                                            id={`${phrase.id}`}
+                                            key={phrase.id}
+                                            ref={(node) => {
+                                                if (node) rowRefs.current.set(phrase.id, node); else rowRefs.current.delete(phrase.id)
+                                            }}
+                                            onClick={() => selectPhrase(phrase)}
+                                            onDoubleClick={() => {
+                                                const player = mediaRef.current
+                                                if (!player) return
+                                                if (!player.paused && doubleClickedRef.current === phrase.id) {
+                                                    player.pause()
+                                                } else {
+                                                    seek(phrase.startMs)
+                                                    play()
+                                                }
+                                                doubleClickedRef.current = phrase.id
+                                            }}
+                                            className={cn(
+                                                "group relative cursor-pointer transition-colors hover:bg-muted/50",
+                                                selectedId === phrase.id && "bg-brand-deep/10 hover:bg-brand-deep/10",
+                                                visiblePlayingId === phrase.id && "font-semibold"
+                                            )}>
+                                            <td className="px-2 py-3 text-center font-mono text-xs tabular-nums"
+                                                dir="ltr">{formatTime(phrase.startMs)}</td>
+                                            <td className="px-2 py-3 text-center font-mono text-xs tabular-nums"
+                                                dir="ltr">{formatTime(phrase.endMs)}</td>
+                                            <td className="px-4 py-3">
+                                                <div className="space-y-1">{phrase.sentences.map((line, lineIndex) => <div
+                                                    key={lineIndex} className="grid grid-cols-2 gap-4"><span dir="ltr"
+                                                                                                             className="truncate text-left">{line.en ||
+                                                    <span className="text-muted-foreground">—</span>}</span><span
+                                                    className="truncate">{line.fa ||
+                                                    <span className="text-muted-foreground">—</span>}</span></div>)}</div>
+                                            </td>
+                                            <td className="relative px-1 py-2 text-center">
+                                                <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        aria-label="حذف عبارت"
+                                                        title="حذف"
+                                                        onClick={() => void remove(phrase)}>
+                                                        <HugeiconsIcon icon={Delete02Icon} size={17} className="text-destructive"/>
+                                                    </Button>
+                                                </div>
+
+                                                {/* دکمه افزودن بعد - روی مرز پایینی، لبه سمت چپ رکورد */}
                                                 <Button
                                                     type="button"
-                                                    variant="ghost"
-                                                    size="icon-sm"
-                                                    aria-label="افزودن عبارت قبل"
-                                                    title="افزودن قبل"
-                                                    onClick={() => void insertPhrase(index, "before")}>
-                                                    <HugeiconsIcon icon={Add01Icon} size={17}/>
-                                                    <span className="sr-only">قبل</span>
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
+                                                    variant="secondary"
                                                     size="icon-sm"
                                                     aria-label="افزودن عبارت بعد"
                                                     title="افزودن بعد"
-                                                    onClick={() => void insertPhrase(index, "after")}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        void insertPhrase(index, "after")
+                                                    }}
+                                                    className="absolute -bottom-3 left-0 z-30 flex h-6 w-6 items-center justify-center rounded-full border bg-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                                                 >
-                                                    <HugeiconsIcon icon={Add01Icon} size={17}/>
-                                                    <span className="sr-only">بعد</span>
+                                                    <HugeiconsIcon icon={Add01Icon} size={14}/>
                                                 </Button>
+
+                                                {/* دکمه افزودن قبل - فقط برای رکورد اول، روی مرز بالایی، لبه سمت چپ رکورد */}
+                                                {isFirst && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="icon-sm"
+                                                        aria-label="افزودن عبارت قبل"
+                                                        title="افزودن قبل"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            void insertPhrase(index, "before")
+                                                        }}
+                                                        className="absolute -top-3 left-0 z-30 flex h-6 w-6 items-center justify-center rounded-full border bg-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+                                                    >
+                                                        <HugeiconsIcon icon={Add01Icon} size={14}/>
+                                                    </Button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                                {phrases.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="h-36 px-4 text-center text-muted-foreground">
+                                            <div className="flex flex-col items-center gap-3">
+                                                <span>هنوز عبارتی ثبت نشده است.</span>
                                                 <Button
                                                     type="button"
-                                                    variant="ghost"
-                                                    size="icon-sm"
-                                                    aria-label="حذف عبارت"
-                                                    title="حذف"
-                                                    onClick={() => void remove(phrase)}><HugeiconsIcon
-                                                    icon={Delete02Icon} size={17}
-                                                    className="text-destructive"/>
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => void insertPhrase(0, "after")}
+                                                >
+                                                    <HugeiconsIcon icon={Add01Icon} size={16}/>
+                                                    افزودن اولین عبارت
                                                 </Button>
                                             </div>
                                         </td>
-                                    </tr>)}
-                                {phrases.length === 0 &&
-                                    <tr>
-                                        <td colSpan={4} className="h-36 px-4 text-center text-muted-foreground">
-                                            هنوز عبارتی ثبت نشده است.
-                                        </td>
                                     </tr>
-                                }
+                                )}
                                 </tbody>
                             </table>
                         </div>
